@@ -97,7 +97,7 @@ brew install apktool android-commandlinetools openjdk python3
 
 3. **Install the patched APK:**
    ```bash
-  adb install -r artifacts/feurstagram_patched_<instagram_apk_name>_stories_enabled.apk
+   adb install -r artifacts/feurstagram_patched_<instagram_apk_name>_stories_enabled.apk
    ```
 
 4. **Cleanup build artifacts:**
