@@ -30,6 +30,10 @@
   <img src="docs/screens.png" alt="FeurStagram screenshots" width="600" />
 </p>
 
+<p align="center">
+  <img src="docs/tuto.gif" alt="FeurStagram tutorial" width="300" />
+</p>
+
 An open source Instagram app for Android without distractions.
 
 I built this project for myself as an alternative to [DFInstagram](https://www.distractionfreeapps.com/) which hasn't been maintained for a long time and was difficult to update. I'm sharing it so others can do the same for themselves.
