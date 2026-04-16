@@ -1,23 +1,22 @@
 .class public Lcom/feurstagram/FeurHooks;
 .super Ljava/lang/Object;
 
-# Feurstagram Network Hooks
-# Intercepts network requests and blocks unwanted content
+# FeurStagram Network Hooks
 #
-# Blocked endpoints (path unless noted):
-#   - /feed/timeline/ (home feed posts — Stories load from /feed/reels_tray/ separately)
-#   - /discover/topical_explore (explore content)
-#   - /clips/discover (reels discovery)
-#   - /logging/ (client event logging)
-#   - /async_ads_privacy/ (ad tracking)
-#   - /async_critical_notices/ (engagement nudge analytics)
-#   - /api/v1/media/.../seen/ ("seen" tracking for posts)
-#   - /api/v1/fbupload/ (telemetry upload)
-#   - /api/v1/stats/ (performance/usage stats)
-#   - /api/v1/commerce/, /api/v1/shopping/, /api/v1/sellable_items/ (shopping preloads)
+# Content blocks are gated on FeurConfig (runtime toggles):
+#   - /feed/timeline/         -> isFeedBlocked()
+#   - /feed/reels_tray        -> isStoriesBlocked()
+#   - /discover/topical_explore -> isExploreBlocked()
+#   - /clips/home/, /clips/discover -> isReelsBlocked()
 #
-# Note: /clips/home/ is NOT blocked because the Reels tab is already
-#       redirected at the UI level - users can still view reels shared in DMs
+# Analytics / commerce endpoints are always blocked regardless of toggles:
+#   - /logging/
+#   - /async_ads_privacy/
+#   - /async_critical_notices/
+#   - /api/v1/media/.../seen/
+#   - /api/v1/fbupload/
+#   - /api/v1/stats/
+#   - /api/v1/commerce/, /api/v1/shopping/, /api/v1/sellable_items/
 
 
 .method public constructor <init>()V
@@ -27,37 +26,15 @@
 .end method
 
 
-# Log a message with tag "Feurstagram" (visible via: adb logcat -s "Feurstagram:D")
+# Log with tag "Feurstagram" (adb logcat -s "Feurstagram:D")
 .method public static log(Ljava/lang/String;)V
-    .locals 1
-    const-string v0, "Feurstagram"
-    invoke-static {v0, p0}, Landroid/util/Log;->d(Ljava/lang/String;Ljava/lang/String;)I
+    .locals 0
     return-void
 .end method
 
 
-# Log network request URL for debugging
 .method public static logRequest(Ljava/net/URI;)V
-    .locals 3
-    
-    if-eqz p0, :cond_return
-    
-    new-instance v0, Ljava/lang/StringBuilder;
-    invoke-direct {v0}, Ljava/lang/StringBuilder;-><init>()V
-    
-    const-string v1, "REQ: "
-    invoke-virtual {v0, v1}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
-    
-    invoke-virtual {p0}, Ljava/net/URI;->getPath()Ljava/lang/String;
-    move-result-object v1
-    invoke-virtual {v0, v1}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
-    
-    invoke-virtual {v0}, Ljava/lang/StringBuilder;->toString()Ljava/lang/String;
-    move-result-object v0
-    
-    invoke-static {v0}, Lcom/feurstagram/FeurHooks;->log(Ljava/lang/String;)V
-    
-    :cond_return
+    .locals 0
     return-void
 .end method
 
@@ -88,79 +65,94 @@
 .end method
 
 
-# Main hook: Throws IOException if request should be blocked
-# Called from TigonServiceLayer before each network request
+# Main hook: Throws IOException if request should be blocked.
+# Called from TigonServiceLayer before each network request.
 .method public static throwIfBlocked(Ljava/net/URI;)V
     .locals 4
-
-    # Log the request (comment out for production)
-    invoke-static {p0}, Lcom/feurstagram/FeurHooks;->logRequest(Ljava/net/URI;)V
 
     invoke-virtual {p0}, Ljava/net/URI;->getPath()Ljava/lang/String;
     move-result-object v0
 
     if-eqz v0, :cond_return
 
-    # Block feed timeline (posts) - Stories load separately from /feed/reels_tray/
+    # Home feed (toggleable)
+    invoke-static {}, Lcom/feurstagram/FeurConfig;->isFeedBlocked()Z
+    move-result v2
+    if-eqz v2, :skip_feed
     const-string v1, "/feed/timeline/"
     invoke-virtual {v0, v1}, Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z
     move-result v2
     if-nez v2, :cond_block
+    :skip_feed
 
-    # Optionally block Stories
-    #const-string v1, "/feed/reels_tray"
-    #invoke-virtual {v0, v1}, Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z
-    #move-result v2
-    #if-nez v2, :cond_block
+    # Stories (toggleable) - Instagram loads the story tray from /feed/reels_tray/
+    invoke-static {}, Lcom/feurstagram/FeurConfig;->isStoriesBlocked()Z
+    move-result v2
+    if-eqz v2, :skip_stories
+    const-string v1, "/feed/reels_tray"
+    invoke-virtual {v0, v1}, Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z
+    move-result v2
+    if-nez v2, :cond_block
+    :skip_stories
 
-    # Block explore content
+    # Explore tab (toggleable)
+    invoke-static {}, Lcom/feurstagram/FeurConfig;->isExploreBlocked()Z
+    move-result v2
+    if-eqz v2, :skip_explore
     const-string v1, "/discover/topical_explore"
     invoke-virtual {v0, v1}, Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z
     move-result v2
     if-nez v2, :cond_block
+    :skip_explore
 
-    # Block reels discovery
+    # Reels (toggleable) - block clips surfaces only.
+    # Note: /feed/reels_media_stream/ and /feed/injected_reels_media/
+    # are shared with stories delivery, so they are intentionally not
+    # controlled by the Reels toggle.
+    invoke-static {}, Lcom/feurstagram/FeurConfig;->isReelsBlocked()Z
+    move-result v2
+    if-eqz v2, :skip_reels
+    const-string v1, "/clips/home/"
+    invoke-virtual {v0, v1}, Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z
+    move-result v2
+    if-nez v2, :cond_block
     const-string v1, "/clips/discover"
     invoke-virtual {v0, v1}, Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z
     move-result v2
     if-nez v2, :cond_block
+    :skip_reels
 
-    # Client event logging
+    # --- Always-blocked analytics / commerce ---
+
     const-string v1, "/logging/"
     invoke-virtual {v0, v1}, Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z
     move-result v2
     if-nez v2, :cond_block
 
-    # Ad / privacy tracking pings
     const-string v1, "/async_ads_privacy/"
     invoke-virtual {v0, v1}, Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z
     move-result v2
     if-nez v2, :cond_block
 
-    # Engagement nudge analytics
     const-string v1, "/async_critical_notices/"
     invoke-virtual {v0, v1}, Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z
     move-result v2
     if-nez v2, :cond_block
 
-    # Post "seen" tracking
     invoke-static {v0}, Lcom/feurstagram/FeurHooks;->shouldBlockMediaSeen(Ljava/lang/String;)Z
     move-result v2
     if-nez v2, :cond_block
 
-    # Facebook telemetry upload
     const-string v1, "/api/v1/fbupload/"
     invoke-virtual {v0, v1}, Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z
     move-result v2
     if-nez v2, :cond_block
 
-    # Performance / usage stats
     const-string v1, "/api/v1/stats/"
     invoke-virtual {v0, v1}, Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z
     move-result v2
     if-nez v2, :cond_block
 
-    # Shopping / commerce preloads
     const-string v1, "/api/v1/commerce/"
     invoke-virtual {v0, v1}, Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z
     move-result v2
@@ -176,18 +168,15 @@
     move-result v2
     if-nez v2, :cond_block
 
-    # Not blocked, return normally
     :cond_return
     return-void
 
-    # Block by throwing IOException
     :cond_block
     const-string v1, "BLOCKED!"
     invoke-static {v1}, Lcom/feurstagram/FeurHooks;->log(Ljava/lang/String;)V
-    
+
     new-instance v3, Ljava/io/IOException;
     const-string v1, "Blocked by Feurstagram"
     invoke-direct {v3, v1}, Ljava/io/IOException;-><init>(Ljava/lang/String;)V
     throw v3
-
 .end method

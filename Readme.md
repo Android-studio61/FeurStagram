@@ -9,8 +9,13 @@
   <a href="https://github.com/jean-voila/FeurStagram/releases/latest">
     <img src="https://img.shields.io/github/v/release/jean-voila/FeurStagram?style=for-the-badge&label=Download%20APK&color=10a37f" alt="Download APK">
   </a>
+  <br>
   <a href="https://discord.gg/Z9QvMw8s76">
     <img src="https://img.shields.io/badge/Discord-Join%20Server-5865F2?style=for-the-badge&logo=discord&logoColor=white" alt="Join Discord">
+  </a>
+  <br>
+  <a href="https://www.instagram.com/feurstagram_official/">
+    <img src="https://img.shields.io/badge/Instagram-Official%20Account-E4405F?style=for-the-badge&logo=instagram&logoColor=white" alt="Official Instagram">
   </a>
 </p>
 
@@ -22,9 +27,7 @@
 
 
 <p align="center">
-  <img src="docs/screen_1.png" alt="FeurStagram screenshot 1" width="240" />
-  <img src="docs/screen_2.png" alt="FeurStagram screenshot 2" width="240" />
-  <img src="docs/screen_3.png" alt="FeurStagram screenshot 3" width="240" />
+  <img src="docs/screens.png" alt="FeurStagram screenshots" width="600" />
 </p>
 
 An open source Instagram app for Android without distractions.
@@ -32,6 +35,15 @@ An open source Instagram app for Android without distractions.
 I built this project for myself as an alternative to [DFInstagram](https://www.distractionfreeapps.com/) which hasn't been maintained for a long time and was difficult to update. I'm sharing it so others can do the same for themselves.
 
 **This project is entirely free and open-source.** Feel free to fork, copy, enhance, or submit pull requests - do whatever you want with it!
+
+## How do I get notified when there is a new update ?
+
+There will be a story on **the official FeurStagram** account every time there is
+an update:
+
+- https://www.instagram.com/feurstagram_official/
+
+Just follow this account and you will get a new story on each release.
 
 ## Community
 
@@ -48,24 +60,35 @@ You have two options:
 
 ## What Gets Disabled
 
-| Feature | Status | How |
-|---------|--------|-----|
-| **Feed Posts** | ❌ Blocked | Network-level blocking |
-| **Explore Content** | ❌ Blocked | Network-level blocking |
-| **Reels Content** | ❌ Redirected | Redirects to DMs |
-| **Analytics & telemetry** | ❌ Blocked | See [Blocked network paths](#blocked-network-paths) |
-| **Shopping / commerce preloads** | ❌ Blocked | See [Blocked network paths](#blocked-network-paths) |
+All content blocks are **individual runtime toggles** — long-press the Home
+tab at the bottom-left of the main tab bar to open the FeurStagram settings
+dialog and check/uncheck what you want blocked. A single APK covers every
+combination.
+
+| Feature | Default | Toggleable | How |
+|---------|---------|------------|-----|
+| **Home Feed** | Blocked | Yes | Network-level blocking |
+| **Explore** | Blocked | Yes | Network-level blocking |
+| **Reels** | Blocked | Yes | Network-level blocking |
+| **Stories** | Visible | Yes | Network-level blocking |
+| **Analytics & telemetry** | Blocked | No | Always blocked |
+| **Shopping / commerce preloads** | Blocked | No | Always blocked |
 
 ## What Still Works
 
 | Feature | Status |
 |---------|--------|
-| **Stories** | ✅ Works |
-| **Direct Messages** | ✅ Works |
-| **Profile** | ✅ Works |
-| **Reels in DMs** | ✅ Works |
-| **Search** | ✅ Works |
-| **Notifications** | ✅ Works |
+| **Direct Messages** | Works |
+| **Profile** | Works |
+| **Reels in DMs** | Works |
+| **Search** | Works |
+| **Notifications** | Works |
+
+## Settings Dialog
+
+**Long-press the Home tab** (the house icon at the bottom-left of Instagram's
+main tab bar). A dialog lists the four content toggles; changes persist
+across restarts (stored in SharedPreferences `feurstagram_prefs`).
 
 
 ## Requirements
@@ -90,14 +113,9 @@ brew install apktool android-commandlinetools openjdk python3
    ./patch.sh instagram.apk
    ```
 
-  To also block stories:
-  ```bash
-  ./patch.sh --block-stories instagram.apk
-  ```
-
 3. **Install the patched APK:**
    ```bash
-   adb install -r artifacts/feurstagram_patched_<instagram_apk_name>_stories_enabled.apk
+   adb install -r artifacts/feurstagram_patched_<instagram_apk_name>.apk
    ```
 
 4. **Cleanup build artifacts:**
@@ -109,13 +127,17 @@ brew install apktool android-commandlinetools openjdk python3
 
 ```
 Feurstagram/
-├── patch.sh                 # Main patching script
-├── cleanup.sh               # Removes build artifacts
-├── apply_network_patch.py   # Network hook patch logic
-├── artifacts/               # Patched APK output directory
+├── patch.sh                       # Main patching script
+├── cleanup.sh                     # Removes build artifacts
+├── apply_network_patch.py         # Network hook patch logic
+├── apply_longpress_patch.py       # Injects the long-press hook on the Home tab
+├── artifacts/                     # Patched APK output directory
 └── patches/
-    ├── FeurConfig.smali     # Configuration class
-    └── FeurHooks.smali      # Network blocking hooks
+    ├── FeurConfig.smali                  # SharedPreferences-backed toggles
+    ├── FeurHooks.smali                   # Network blocking hooks
+    ├── FeurSettings.smali                # Settings dialog entry point
+    ├── FeurHomeTabWatcher.smali          # Finds feed_tab in the tab_bar
+    └── FeurSettingsLongClick.smali       # View.OnLongClickListener shim
 ```
 
 ## Keystore
@@ -162,26 +184,42 @@ adb logcat -s "Feurstagram:D"
 
 ## How It Works
 
-### Tab Redirect
-Intercepts fragment loading in the main tab host. When Instagram tries to load `fragment_clips` (Reels), it redirects to `fragment_direct_tab` (DMs).
+Everything is network-based — there is no UI-level tab redirection. Reels,
+Explore, Feed and Stories are all blocked the same way (by refusing their
+backend fetches), and each one is individually toggleable at runtime through
+the settings dialog.
+
+### Settings Hook
+The patcher injects a watcher on the main tab bar binder (`LX/4jG`, the class
+that stores the `tab_bar` ViewGroup in field `A0F`). The watcher resolves the
+`feed_tab` resource id dynamically via `Resources.getIdentifier(...)`, grabs
+the Home tab FrameLayout once it's laid out, and installs a long-press
+listener on it. Long-pressing it opens a custom Material 3-styled dark dialog
+with four `SwitchCompat` toggles backed by `SharedPreferences`
+(`feurstagram_prefs`).
 
 ### Network Blocking
-Hooks into `TigonServiceLayer` (a named, non-obfuscated class). Before each request, `FeurHooks.throwIfBlocked()` runs on the request URI; blocked calls fail with an `IOException` so the stack unwinds cleanly (same pattern as the original feed/explore blocks).
+Hooks into `TigonServiceLayer` (a named, non-obfuscated class). Before each
+request, `FeurHooks.throwIfBlocked()` runs on the request URI; blocked calls
+fail with an `IOException` so the stack unwinds cleanly.
 
 #### Blocked network paths
 
-| Path / pattern | Purpose |
-|----------------|---------|
-| `/feed/timeline/` | Home feed posts |
-| `/discover/topical_explore` | Explore tab content |
-| `/clips/discover` | Reels discovery feed |
-| `/logging/` | Client event logging |
-| `/async_ads_privacy/` | Ad-related tracking |
-| `/async_critical_notices/` | Engagement nudge analytics |
-| `/api/v1/media/.../seen/` (path contains `/api/v1/media/` and `/seen`) | Post “seen” tracking |
-| `/api/v1/fbupload/` | Telemetry upload |
-| `/api/v1/stats/` | Performance / usage stats |
-| `/api/v1/commerce/`, `/api/v1/shopping/`, `/api/v1/sellable_items/` | Shopping / commerce preloads |
+| Path / pattern | Purpose | Toggleable |
+|----------------|---------|------------|
+| `/feed/timeline/` | Home feed posts | Yes |
+| `/feed/reels_tray` | Stories tray | Yes |
+| `/discover/topical_explore` | Explore tab content | Yes |
+| `/clips/home/`, `/clips/discover` | Reels feed + discovery | Yes |
+| `/logging/` | Client event logging | No |
+| `/async_ads_privacy/` | Ad-related tracking | No |
+| `/async_critical_notices/` | Engagement nudge analytics | No |
+| `/api/v1/media/.../seen/` (path contains `/api/v1/media/` and `/seen`) | Post “seen” tracking | No |
+| `/api/v1/fbupload/` | Telemetry upload | No |
+| `/api/v1/stats/` | Performance / usage stats | No |
+| `/api/v1/commerce/`, `/api/v1/shopping/`, `/api/v1/sellable_items/` | Shopping / commerce preloads | No |
+
+Note: despite the name, `/feed/reels_tray` is the stories tray endpoint in Instagram internals.
 
 Matching uses `String.contains()` on the URI path. Instagram changes URL shapes over time; adjust `patches/FeurHooks.smali` if a block stops matching.
 
