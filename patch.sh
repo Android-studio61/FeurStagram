@@ -6,7 +6,7 @@
 # Single-APK build: all content blocks (feed, explore, reels, stories) are
 # toggled at runtime by long-pressing the Home tab (bottom-left).
 #
-# Usage: ./patch.sh <instagram.apk>
+# Usage: ./patch.sh [--clone [PACKAGE]] <instagram.apk>
 
 set -e
 
@@ -21,6 +21,9 @@ KEYSTORE="${FEURSTAGRAM_KEYSTORE:-$SCRIPT_DIR/feurstagram.keystore}"
 KEYSTORE_PASS="${FEURSTAGRAM_KEYSTORE_PASS:-}"
 KEY_ALIAS="${FEURSTAGRAM_KEY_ALIAS:-feurstagram}"
 KEY_PASS="${FEURSTAGRAM_KEY_PASS:-$KEYSTORE_PASS}"
+
+CLONE_MODE=0
+CLONE_PACKAGE="com.instagram.android.feurstagram"
 
 find_build_tools() {
     local paths=(
@@ -89,8 +92,16 @@ patch_apk() {
     local INPUT_BASENAME
     INPUT_BASENAME="$(basename "$INPUT_APK" .apk)"
     local OUTPUT_DIR="$SCRIPT_DIR/artifacts"
-    local OUTPUT_APK="$OUTPUT_DIR/feurstagram_patched_${INPUT_BASENAME}.apk"
+    local OUTPUT_SUFFIX=""
+    if [ "$CLONE_MODE" -eq 1 ]; then
+        OUTPUT_SUFFIX="_clone"
+    fi
+    local OUTPUT_APK="$OUTPUT_DIR/feurstagram_patched${OUTPUT_SUFFIX}_${INPUT_BASENAME}.apk"
     mkdir -p "$OUTPUT_DIR"
+
+    if [ "$CLONE_MODE" -eq 1 ]; then
+        echo -e "${YELLOW}Clone mode: new package = ${CLONE_PACKAGE}${NC}"
+    fi
 
     echo -e "\n${YELLOW}[1/6] Decompiling APK...${NC}"
     if [ -d "$WORK_DIR" ]; then
@@ -148,6 +159,14 @@ PY
     python3 "$SCRIPT_DIR/apply_longpress_patch.py" "$WORK_DIR"
     echo -e "${GREEN}✓ Long-press settings hook applied${NC}"
 
+    if [ "$CLONE_MODE" -eq 1 ]; then
+        echo -e "\n${YELLOW}[4b/6] Rewriting package ID for clone install...${NC}"
+        python3 "$SCRIPT_DIR/apply_clone_patch.py" "$WORK_DIR/AndroidManifest.xml" "$CLONE_PACKAGE"
+        python3 "$SCRIPT_DIR/apply_clone_resources_patch.py" "$WORK_DIR/resources.arsc" "$CLONE_PACKAGE"
+        python3 "$SCRIPT_DIR/apply_clone_runtime_patch.py" "$WORK_DIR"
+        echo -e "${GREEN}✓ Manifest/resources rewritten to ${CLONE_PACKAGE}${NC}"
+    fi
+
     echo -e "\n${YELLOW}[5/6] Building APK...${NC}"
     apktool b "$WORK_DIR" -o "$SCRIPT_DIR/feurstagram_unsigned.apk"
     echo -e "${GREEN}✓ APK built${NC}"
@@ -166,13 +185,19 @@ PY
 }
 
 usage() {
-    echo "Usage: $0 <instagram.apk>"
+    echo "Usage: $0 [--clone [PACKAGE]] <instagram.apk>"
     echo ""
     echo "Patches an Instagram APK to create FeurStagram (distraction-free)."
     echo ""
     echo "All content blocks (Home Feed, Explore, Reels, Stories) are"
     echo "individually toggleable at runtime: long-press the Home tab (bottom-left)"
     echo "to open the FeurStagram settings dialog."
+    echo ""
+    echo "Options:"
+    echo "  --clone [PACKAGE]          Rename the app's package ID so the patched"
+    echo "                             build installs side-by-side with a stock"
+    echo "                             Instagram. PACKAGE defaults to"
+    echo "                             com.instagram.android.feurstagram."
     echo ""
     echo "Signing environment variables:"
     echo "  FEURSTAGRAM_KEYSTORE       Path to keystore (default: ./feurstagram.keystore)"
@@ -188,6 +213,15 @@ while [ $# -gt 0 ]; do
         -h|--help)
             usage
             exit 0
+            ;;
+        --clone)
+            CLONE_MODE=1
+            # Accept an optional package name argument. If the next arg is
+            # missing or looks like another flag/file, fall back to the default.
+            if [ $# -gt 1 ] && [[ "$2" != -* ]] && [[ "$2" != *.apk ]]; then
+                CLONE_PACKAGE="$2"
+                shift
+            fi
             ;;
         *)
             if [ -z "$INPUT_APK" ]; then

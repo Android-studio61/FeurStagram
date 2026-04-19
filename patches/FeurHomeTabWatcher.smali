@@ -24,7 +24,7 @@
 
 # virtual methods
 .method public onGlobalLayout()V
-    .locals 6
+    .locals 7
 
     iget-object v0, p0, Lcom/feurstagram/FeurHomeTabWatcher;->mContainer:Landroid/view/ViewGroup;
     if-nez v0, :cond_has_container
@@ -41,19 +41,32 @@
     :cond_has_ctx
     invoke-virtual {v1}, Landroid/content/Context;->getResources()Landroid/content/res/Resources;
     move-result-object v2
-    invoke-virtual {v1}, Landroid/content/Context;->getPackageName()Ljava/lang/String;
-    move-result-object v3
 
     const-string v4, "feed_tab"
     const-string v5, "id"
+
+    # Look the id up under the running app's package first.
+    invoke-virtual {v1}, Landroid/content/Context;->getPackageName()Ljava/lang/String;
+    move-result-object v3
     invoke-virtual {v2, v4, v5, v3}, Landroid/content/res/Resources;->getIdentifier(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)I
-    move-result v2
-    if-nez v2, :cond_has_id
+    move-result v6
+
+    if-nez v6, :cond_has_id
+
+    # Under --clone, the app id is e.g. "com.instagram.android.feurstagram"
+    # but resources.arsc still declares "com.instagram.android" as the
+    # resource package, so the first lookup returns 0. Retry under the
+    # Instagram resource package.
+    const-string v3, "com.instagram.android"
+    invoke-virtual {v2, v4, v5, v3}, Landroid/content/res/Resources;->getIdentifier(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)I
+    move-result v6
+
+    if-nez v6, :cond_has_id
     # Resource not found yet; keep waiting.
     return-void
 
     :cond_has_id
-    invoke-virtual {v0, v2}, Landroid/view/ViewGroup;->findViewById(I)Landroid/view/View;
+    invoke-virtual {v0, v6}, Landroid/view/ViewGroup;->findViewById(I)Landroid/view/View;
     move-result-object v3
     if-nez v3, :cond_found
     # feed_tab not yet inflated; keep waiting.

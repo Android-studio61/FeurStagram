@@ -117,6 +117,18 @@ brew install apktool android-commandlinetools openjdk python3
    ./patch.sh instagram.apk
    ```
 
+   Use `--clone` to install FeurStagram **alongside** a stock Instagram
+   (different package ID, separate data, both apps on the same device):
+
+   ```bash
+   ./patch.sh --clone instagram.apk
+   # or specify the cloned package ID explicitly:
+   ./patch.sh --clone com.instagram.android.feurstagram instagram.apk
+   ```
+
+   Without `--clone`, the patched APK keeps Instagram's original package ID
+   and installs as a replacement.
+
 3. **Install the patched APK:**
    ```bash
    adb install -r artifacts/feurstagram_patched_<instagram_apk_name>.apk
@@ -135,6 +147,7 @@ Feurstagram/
 ├── cleanup.sh                     # Removes build artifacts
 ├── apply_network_patch.py         # Network hook patch logic
 ├── apply_longpress_patch.py       # Injects the long-press hook on the Home tab
+├── apply_clone_patch.py           # Rewrites binary AndroidManifest.xml for --clone
 ├── artifacts/                     # Patched APK output directory
 └── patches/
     ├── FeurConfig.smali                  # SharedPreferences-backed toggles
