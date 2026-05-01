@@ -124,6 +124,16 @@
 
     # --- Always-blocked analytics / commerce ---
 
+    const-string v1, "/api/v1/ads/"
+    invoke-virtual {v0, v1}, Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z
+    move-result v2
+    if-nez v2, :cond_block
+
+    const-string v1, "/feed/injected_reels_media/"
+    invoke-virtual {v0, v1}, Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z
+    move-result v2
+    if-nez v2, :cond_block
+
     const-string v1, "/logging/"
     invoke-virtual {v0, v1}, Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z
     move-result v2

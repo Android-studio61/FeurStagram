@@ -77,6 +77,10 @@ combination.
 | **Stories** | Visible | Yes | Network-level blocking |
 | **Analytics & telemetry** | Blocked | No | Always blocked |
 | **Shopping / commerce preloads** | Blocked | No | Always blocked |
+| **Ads** | Blocked | No | Always blocked |
+
+
+
 
 ## What Still Works
 
