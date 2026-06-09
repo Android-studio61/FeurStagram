@@ -7,7 +7,7 @@
 
 <p align="center">
   <a href="https://github.com/jean-voila/FeurStagram/releases/latest">
-    <img src="https://img.shields.io/github/v/release/jean-voila/FeurStagram?style=for-the-badge&label=Download%20APK&color=10a37f" alt="Download APK">
+    <img src="https://badgen.net/github/release/jean-voila/FeurStagram?label=Download%20APK&color=0f9b6e" alt="Download APK">
   </a>
   <br>
   <a href="https://discord.gg/Z9QvMw8s76">
