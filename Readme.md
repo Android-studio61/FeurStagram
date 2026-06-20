@@ -1,49 +1,63 @@
-<p align="center">
-  <img src="docs/app_icon.png" alt="FeurStagram Icon" width="128">
-</p>
+<div align="center">
+  <img src="docs/app_icon.png" alt="FeurStagram logo" width="128" height="128">
+  <h1>FeurStagram</h1>
+  <p><strong>Instagram, without the addictive surfaces.</strong></p>
+  <p>
+    FeurStagram is an open-source Android patch for Instagram that removes
+    the feed, Explore, Reels, ads, telemetry, and other distracting features
+    while keeping DMs, stories, search, notifications, and profiles.
+  </p>
+</div>
 
-<h1 align="center">FeurStagram</h1>
-<p align="center"><strong>Instagram without the addictive parts.</strong></p>
-
 <p align="center">
-  <a href="https://github.com/jean-voila/FeurStagram/releases/latest">
-    <img src="https://badgen.net/github/release/jean-voila/FeurStagram?label=Download%20APK&color=0f9b6e" alt="Download APK">
-  </a>
-  <br>
-  <a href="https://discord.gg/Z9QvMw8s76">
-    <img src="https://img.shields.io/badge/Discord-Join%20Server-5865F2?style=for-the-badge&logo=discord&logoColor=white" alt="Join Discord">
-  </a>
-  <br>
-  <a href="https://www.instagram.com/feurstagram_official/">
-    <img src="https://img.shields.io/badge/Instagram-Official%20Account-E4405F?style=for-the-badge&logo=instagram&logoColor=white" alt="Official Instagram">
-  </a>
-  <br>
-  <a href="https://github.com/sponsors/jean-voila">
-    <img src="https://img.shields.io/badge/GitHub%20Sponsors-Support%20the%20Project-EA4AAA?style=for-the-badge&logo=githubsponsors&logoColor=white" alt="Support on GitHub Sponsors">
-  </a>
+  <a href="https://github.com/jean-voila/FeurStagram/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/jean-voila/FeurStagram?style=flat-square&label=release&color=10a37f"></a>
+  <a href="https://github.com/jean-voila/FeurStagram/releases/latest"><img alt="Download APK" src="https://img.shields.io/badge/download-APK-10a37f?style=flat-square"></a>
+  <a href="LICENSE"><img alt="License" src="https://img.shields.io/github/license/jean-voila/FeurStagram?style=flat-square&color=6b7280"></a>
+  <a href="https://discord.gg/Z9QvMw8s76"><img alt="Discord" src="https://img.shields.io/badge/discord-community-5865F2?style=flat-square&logo=discord&logoColor=white"></a>
+  <a href="https://www.instagram.com/feurstagram_official/"><img alt="Instagram updates" src="https://img.shields.io/badge/instagram-updates-E4405F?style=flat-square&logo=instagram&logoColor=white"></a>
 </p>
 
 <p align="center">
-  <img src="https://komarev.com/ghpvc/?username=jean-voila-feurstagram&label=Views&color=gray&style=flat" alt="Views">
-</p>
-
----
-
-FeurStagram is an open-source Android patch for Instagram that removes the feed, Explore, Reels, ads, telemetry and other distracting features while keeping DMs, stories, search, notifications and profiles.
-
-**Keep:** DMs, stories, search, profiles, notifications.
-
-**Remove or block:** endless feed, Reels, Explore, ads, telemetry.
-
-[Download APK](https://github.com/jean-voila/FeurStagram/releases/latest) · [Build it yourself](docs/BUILD_FROM_SOURCE.md) · [Installation guide](docs/INSTALL.md) · [FAQ](docs/FAQ.md) · [Join Discord](https://discord.gg/Z9QvMw8s76) · [Report an issue](https://github.com/jean-voila/FeurStagram/issues)
-
-
-<p align="center">
-  <img src="docs/screens.png" alt="FeurStagram screenshots" width="600" />
+  <a href="https://github.com/sponsors/jean-voila"><img alt="Support on GitHub Sponsors" src="https://img.shields.io/badge/GitHub%20Sponsors-Support%20the%20Project-EA4AAA?style=for-the-badge&logo=githubsponsors&logoColor=white"></a>
 </p>
 
 <p align="center">
-  <img src="docs/tuto.gif" alt="FeurStagram tutorial" width="300" />
+  <a href="https://github.com/jean-voila/FeurStagram/releases/latest"><strong>Download APK</strong></a>
+  ·
+  <a href="docs/INSTALL.md">Install</a>
+  ·
+  <a href="docs/BUILD_FROM_SOURCE.md">Build from source</a>
+  ·
+  <a href="docs/FAQ.md">FAQ</a>
+  ·
+  <a href="docs/PRIVACY.md">Privacy</a>
+  ·
+  <a href="https://github.com/sponsors/jean-voila">Support</a>
+  ·
+  <a href="https://github.com/jean-voila/FeurStagram/issues">Issues</a>
+</p>
+
+<p align="center">
+  <img src="docs/preview.png" alt="FeurStagram social preview" width="720">
+</p>
+
+## What it keeps and blocks
+
+| Keep using Instagram for | Remove or block |
+|--------------------------|-----------------|
+| Direct Messages | Endless Home feed |
+| Stories | Reels surfaces |
+| Search and profiles | Explore recommendations |
+| Notifications | Ads, shopping preloads, and telemetry |
+
+## Preview
+
+<p align="center">
+  <img src="docs/screens.png" alt="FeurStagram screenshots" width="680">
+</p>
+
+<p align="center">
+  <img src="docs/tuto.gif" alt="FeurStagram settings tutorial" width="300">
 </p>
 
 ## Is it safe?
