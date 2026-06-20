@@ -2,13 +2,9 @@
 <html lang="en">
 
 <head>
-    <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-26QPL7L7BK"></script>
+    <!-- No analytics are loaded. Keep a local no-op so existing click handlers do not fail. -->
     <script>
-        window.dataLayer = window.dataLayer || [];
-        function gtag() { dataLayer.push(arguments); }
-        gtag('js', new Date());
-        gtag('config', 'G-26QPL7L7BK', { 'send_page_view': true });
+        function gtag() { }
     </script>
 
     <meta charset="UTF-8">
@@ -316,6 +312,27 @@
             justify-content: center;
         }
 
+        .quick-links {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 24px;
+            max-width: 760px;
+        }
+
+        .quick-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            border-bottom: 1px solid transparent;
+            font-size: 0.95rem;
+        }
+
+        .quick-links a:hover {
+            color: var(--text-primary);
+            border-color: var(--text-primary);
+        }
+
         .btn-disabled {
             opacity: 0.5;
             pointer-events: none;
@@ -364,6 +381,20 @@
         }
 
         .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+        }
+
+        .info-section {
+            padding: 0 0 80px;
+        }
+
+        .info-section .section-header {
+            margin-bottom: 32px;
+        }
+
+        .info-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
             gap: 24px;
@@ -497,6 +528,11 @@
                 align-items: stretch;
             }
 
+            .quick-links {
+                flex-direction: column;
+                align-items: center;
+            }
+
             .feature-card {
                 padding: 24px;
             }
@@ -556,6 +592,13 @@
                     Source Code
                 </a>
             </div>
+            <nav class="quick-links" aria-label="Project links">
+                <a href="https://github.com/jean-voila/FeurStagram/releases/latest">Latest release</a>
+                <a href="https://github.com/jean-voila/FeurStagram/blob/main/docs/INSTALL.md">Installation guide</a>
+                <a href="https://github.com/jean-voila/FeurStagram/blob/main/docs/BUILD_FROM_SOURCE.md">Build from source</a>
+                <a href="https://github.com/jean-voila/FeurStagram/blob/main/docs/FAQ.md">FAQ</a>
+                <a href="https://github.com/jean-voila/FeurStagram/issues">GitHub issues</a>
+            </nav>
             <div class="discord-cta">
                 <a href="https://discord.gg/Z9QvMw8s76" class="btn btn-discord" id="btn-discord" target="_blank"
                     rel="noopener" onclick="gtag('event', 'join_discord');">
@@ -648,17 +691,87 @@
                 </div>
             </div>
         </section>
+
+        <section class="info-section container">
+            <div class="section-header">
+                <h2>Why FeurStagram?</h2>
+                <p>For people who need Instagram DMs, stories and profiles, but do not want Reels, Explore, ads or the endless feed.</p>
+            </div>
+
+            <div class="info-grid">
+                <div class="feature-card">
+                    <h3>Real Android app</h3>
+                    <p>FeurStagram patches the real Instagram Android app instead of wrapping the mobile website in a WebView.</p>
+                </div>
+
+                <div class="feature-card">
+                    <h3>Open patches</h3>
+                    <p>The patch scripts and smali changes are public, so you can inspect what is changed before installing anything.</p>
+                </div>
+
+                <div class="feature-card">
+                    <h3>Built for focus</h3>
+                    <p>It keeps the useful social features and removes the parts designed for endless scrolling.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="info-section container">
+            <div class="section-header">
+                <h2>Classic APK vs Clone APK</h2>
+                <p>Choose the install type that matches how you want to use Instagram on your device.</p>
+            </div>
+
+            <div class="info-grid">
+                <div class="feature-card">
+                    <h3>Classic APK</h3>
+                    <p>Replaces the regular Instagram app by keeping Instagram's original package ID. Use this if you only want FeurStagram installed.</p>
+                </div>
+
+                <div class="feature-card">
+                    <h3>Clone APK</h3>
+                    <p>Uses a different package ID so it can be installed alongside the official Instagram app. Use this if you want both apps on the same device.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="info-section container">
+            <div class="section-header">
+                <h2>Safety and trust</h2>
+                <p>FeurStagram does not collect, proxy, store, or transmit your Instagram credentials.</p>
+            </div>
+
+            <div class="info-grid">
+                <div class="feature-card">
+                    <h3>Build it yourself</h3>
+                    <p>You can patch the APK locally from source instead of trusting a prebuilt release artifact.</p>
+                </div>
+
+                <div class="feature-card">
+                    <h3>Unofficial project</h3>
+                    <p>FeurStagram is not affiliated with Instagram or Meta. It is a modified APK, so use it at your own risk.</p>
+                </div>
+
+                <div class="feature-card">
+                    <h3>Documented behavior</h3>
+                    <p>The README documents the current blocked network paths for feed, Reels, Explore, ads, telemetry and related features.</p>
+                </div>
+            </div>
+        </section>
     </main>
 
     <footer>
         <p>
             Free and open-source. Made by <a href="https://github.com/jean-voila" target="_blank"
                 rel="noopener">jean-voila</a> • Join the <a href="https://discord.gg/Z9QvMw8s76" target="_blank"
-                rel="noopener" onclick="gtag('event', 'join_discord_footer');">Discord server</a>
+                rel="noopener" onclick="gtag('event', 'join_discord_footer');">Discord server</a> •
+            <a href="https://github.com/jean-voila/FeurStagram/issues" target="_blank" rel="noopener">Report an issue</a>
         </p>
     </footer>
 
     <script>
+        const FALLBACK_RELEASE_URL = 'https://github.com/jean-voila/FeurStagram/releases/latest';
+
         // 3D Tilt Effect
         function initTilt(element, intensity = 15) {
             element.style.transformStyle = 'preserve-3d';
@@ -729,11 +842,11 @@
                 standardBtn.classList.remove('btn-disabled');
                 standardBtn.setAttribute('aria-disabled', 'false');
             } else {
-                standardBtn.href = '#';
-                standardBtn.classList.add('btn-disabled');
-                standardBtn.setAttribute('aria-disabled', 'true');
+                standardBtn.href = FALLBACK_RELEASE_URL;
+                standardBtn.classList.remove('btn-disabled');
+                standardBtn.setAttribute('aria-disabled', 'false');
                 if (releaseInfoStandard) {
-                    releaseInfoStandard.textContent = 'Standard build unavailable';
+                    releaseInfoStandard.textContent = 'Latest release';
                 }
             }
 
@@ -742,11 +855,11 @@
                 cloneBtn.classList.remove('btn-disabled');
                 cloneBtn.setAttribute('aria-disabled', 'false');
             } else {
-                cloneBtn.href = '#';
-                cloneBtn.classList.add('btn-disabled');
-                cloneBtn.setAttribute('aria-disabled', 'true');
+                cloneBtn.href = FALLBACK_RELEASE_URL;
+                cloneBtn.classList.remove('btn-disabled');
+                cloneBtn.setAttribute('aria-disabled', 'false');
                 if (releaseInfoClone) {
-                    releaseInfoClone.textContent = 'Clone build unavailable';
+                    releaseInfoClone.textContent = 'Check latest release';
                 }
             }
         }

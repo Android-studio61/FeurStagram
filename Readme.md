@@ -3,7 +3,7 @@
 </p>
 
 <h1 align="center">FeurStagram</h1>
-<p align="center">Distraction-Free Instagram</p>
+<p align="center"><strong>Instagram without the addictive parts.</strong></p>
 
 <p align="center">
   <a href="https://github.com/jean-voila/FeurStagram/releases/latest">
@@ -29,6 +29,14 @@
 
 ---
 
+FeurStagram is an open-source Android patch for Instagram that removes the feed, Explore, Reels, ads, telemetry and other distracting features while keeping DMs, stories, search, notifications and profiles.
+
+**Keep:** DMs, stories, search, profiles, notifications.
+
+**Remove or block:** endless feed, Reels, Explore, ads, telemetry.
+
+[Download APK](https://github.com/jean-voila/FeurStagram/releases/latest) · [Build it yourself](docs/BUILD_FROM_SOURCE.md) · [Installation guide](docs/INSTALL.md) · [FAQ](docs/FAQ.md) · [Join Discord](https://discord.gg/Z9QvMw8s76) · [Report an issue](https://github.com/jean-voila/FeurStagram/issues)
+
 
 <p align="center">
   <img src="docs/screens.png" alt="FeurStagram screenshots" width="600" />
@@ -38,11 +46,50 @@
   <img src="docs/tuto.gif" alt="FeurStagram tutorial" width="300" />
 </p>
 
-An open source Instagram app for Android without distractions.
+## Is it safe?
+
+FeurStagram does not collect, proxy, store, or transmit your credentials.
+
+It patches the official Instagram Android app to remove distracting features. The patches are open source and documented, so you can inspect what is changed.
+
+For maximum trust, you can build the APK yourself instead of downloading a prebuilt release.
+
+That said, FeurStagram is an unofficial project and is not affiliated with Instagram or Meta. It is a modified APK installed outside the Play Store, so Android may show installation warnings. Using a modified client may violate Instagram's terms of service. Use it at your own risk.
+
+## What FeurStagram does NOT do
+
+FeurStagram does not:
+
+- bypass Instagram login;
+- collect your password or session tokens;
+- proxy your traffic through a third-party server;
+- add tracking or analytics;
+- scrape accounts;
+- sell or transmit user data;
+- claim affiliation with Instagram or Meta.
+
+## Why FeurStagram?
+
+Unlike WebView-based alternatives, FeurStagram patches the real Android Instagram app.
+
+Unlike accessibility-service blockers, it does not simply react to the interface after it loads.
+
+Unlike closed-source Instagram mods, every patch is public and auditable.
+
+FeurStagram is built for people who want to keep Instagram's useful social features without the addictive parts.
 
 I built this project for myself as an alternative to [DFInstagram](https://www.distractionfreeapps.com/) which hasn't been maintained for a long time and was difficult to update. I'm sharing it so others can do the same for themselves.
 
 **This project is entirely free and open-source.** Feel free to fork, copy, enhance, or submit pull requests - do whatever you want with it!
+
+## Documentation
+
+- [Installation guide](docs/INSTALL.md)
+- [Build from source](docs/BUILD_FROM_SOURCE.md)
+- [FAQ](docs/FAQ.md)
+- [Privacy](docs/PRIVACY.md)
+- [Contributing](CONTRIBUTING.md)
+- [Security policy](SECURITY.md)
 
 ## How do I get notified when there is a new update ?
 
