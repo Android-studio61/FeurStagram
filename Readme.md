@@ -107,8 +107,13 @@ I built this project for myself as an alternative to [DFInstagram](https://www.d
 
 ## How do I get notified when there is a new update ?
 
-There will be a story on **the official FeurStagram** account every time there is
-an update:
+FeurStagram checks GitHub for a newer release on every launch and shows a
+download prompt when your build is out of date. This **automatic update check**
+is on by default and can be turned off in the FeurStagram settings page
+(Updates section).
+
+There is also a story on **the official FeurStagram** account every time there
+is an update:
 
 - https://www.instagram.com/feurstagram_official/
 
@@ -169,6 +174,9 @@ main tab bar). A full-screen, scrollable settings page opens with:
   Suggested accounts, Instants, and Notes.
 - **Landing page** — choose which surface the app jumps to on cold start
   (Home feed, Search, Direct messages, or Profile).
+- **Updates** — *Automatic update check* (on by default): on launch,
+  FeurStagram checks GitHub for a newer release and prompts you to download it
+  if your build is out of date. Turn it off here to stop the check.
 - **Donate** — opens the project's [GitHub Sponsors](https://github.com/sponsors/jean-voila) page.
 - **Permanent lock** and **Done** buttons pinned at the bottom so they stay
   reachable on any screen size.
@@ -261,7 +269,10 @@ Feurstagram/
     ├── FeurHomeTabWatcher.smali          # Finds feed_tab in the tab_bar
     ├── FeurInstantsHider.smali           # Hides the DM "Instants" + button
     ├── FeurNotesHider.smali              # Hides the DM Notes tray (cf_hub_recycler_view)
-    └── FeurSettingsLongClick.smali       # View.OnLongClickListener shim
+    ├── FeurSettingsLongClick.smali       # View.OnLongClickListener shim
+    ├── FeurUpdateChecker.smali           # On-launch GitHub release check (background thread)
+    ├── FeurUpdatePrompt.smali            # "Update available" dialog (main thread)
+    └── FeurUpdateDownloadListener.smali  # Opens the latest release page in a browser
 ```
 
 ## Keystore

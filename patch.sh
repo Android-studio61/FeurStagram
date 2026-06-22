@@ -187,6 +187,9 @@ PY
     cp "$PATCHES_DIR/FeurHardcoreButtonClickListener.smali" "$WORK_DIR/smali_classes17/com/feurstagram/"
     cp "$PATCHES_DIR/FeurHardcoreConfirmClickListener.smali" "$WORK_DIR/smali_classes17/com/feurstagram/"
     cp "$PATCHES_DIR/FeurHardcoreConfirmButtonClickListener.smali" "$WORK_DIR/smali_classes17/com/feurstagram/"
+    cp "$PATCHES_DIR/FeurUpdateChecker.smali" "$WORK_DIR/smali_classes17/com/feurstagram/"
+    cp "$PATCHES_DIR/FeurUpdatePrompt.smali" "$WORK_DIR/smali_classes17/com/feurstagram/"
+    cp "$PATCHES_DIR/FeurUpdateDownloadListener.smali" "$WORK_DIR/smali_classes17/com/feurstagram/"
     echo -e "${GREEN}✓ Added FeurStagram smali classes${NC}"
 
     echo -e "\n${YELLOW}[3/6] Patching network layer...${NC}"

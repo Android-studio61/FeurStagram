@@ -6,6 +6,11 @@ All notable changes to FeurStagram should be documented in this file.
 
 ### Added
 
+- Added an **automatic update check**: on each launch FeurStagram asks GitHub
+  for the latest release and, if the installed build is out of date, shows a
+  dialog inviting the user to download the update. Enabled by default;
+  toggleable from the new **Updates** section of the settings page. The toggle
+  is never frozen by the permanent lock.
 - Added a **Suggested accounts** toggle that blocks account/user
   recommendation endpoints (profile "Suggested for you", stories-tray injected
   accounts, search null-state recs, post-follow chaining, friend/business

@@ -177,6 +177,18 @@
 .end method
 
 
+# Whether to check GitHub for a newer release on launch. On by default.
+.method public static isAutoUpdateEnabled()Z
+    .locals 2
+
+    const-string v0, "auto_update"
+    const/4 v1, 0x1
+    invoke-static {v0, v1}, Lcom/feurstagram/FeurConfig;->getBlocked(Ljava/lang/String;Z)Z
+    move-result v0
+    return v0
+.end method
+
+
 .method public static isFeedBlocked()Z
     .locals 2
 

@@ -63,6 +63,12 @@
     invoke-virtual {p0}, Landroid/view/ViewGroup;->getViewTreeObserver()Landroid/view/ViewTreeObserver;
     move-result-object v1
     invoke-virtual {v1, v0}, Landroid/view/ViewTreeObserver;->addOnGlobalLayoutListener(Landroid/view/ViewTreeObserver$OnGlobalLayoutListener;)V
+
+    # And the update checker - once per process, asks GitHub for the latest
+    # release and prompts if the installed build is out of date.
+    invoke-static {p0}, Lcom/feurstagram/FeurSettings;->getActivityContext(Landroid/view/View;)Landroid/content/Context;
+    move-result-object v0
+    invoke-static {v0}, Lcom/feurstagram/FeurUpdateChecker;->check(Landroid/content/Context;)V
     return-void
 .end method
 
@@ -337,6 +343,20 @@
     move-result-object v5
     invoke-virtual {v4, v5}, Landroid/widget/LinearLayout;->addView(Landroid/view/View;)V
 
+    # ---- UPDATES section ----
+    const-string v5, "UPDATES"
+    invoke-static {p0, v4, v5}, Lcom/feurstagram/FeurSettings;->addSectionHeader(Landroid/content/Context;Landroid/widget/LinearLayout;Ljava/lang/String;)V
+
+    invoke-static {p0}, Lcom/feurstagram/FeurSettings;->makeSectionCard(Landroid/content/Context;)Landroid/widget/LinearLayout;
+    move-result-object v5
+    invoke-virtual {v4, v5}, Landroid/widget/LinearLayout;->addView(Landroid/view/View;)V
+
+    const-string v6, "Automatic update check"
+    const-string v7, "auto_update"
+    invoke-static {}, Lcom/feurstagram/FeurConfig;->isAutoUpdateEnabled()Z
+    move-result v8
+    invoke-static {p0, v5, v6, v7, v8}, Lcom/feurstagram/FeurSettings;->addRow(Landroid/content/Context;Landroid/widget/LinearLayout;Ljava/lang/String;Ljava/lang/String;Z)V
+
     # ---- Donate button (opens GitHub Sponsors) ----
     const-string v6, "#EA4AAA"
     invoke-static {v6}, Landroid/graphics/Color;->parseColor(Ljava/lang/String;)I
@@ -593,6 +613,11 @@
 .end method
 
 
+# A toggle row. p2 is the label, p3 the preference key, p4 the current value.
+# The subtitle and whether the permanent lock may freeze this row are derived
+# from the key: "block_*" surfaces show the standard subtitle and are
+# freezable; any other pref (e.g. the update toggle) gets its own subtitle and
+# is never frozen, so it always stays toggleable.
 .method private static addRow(Landroid/content/Context;Landroid/widget/LinearLayout;Ljava/lang/String;Ljava/lang/String;Z)V
     .locals 11
 
@@ -653,7 +678,16 @@
 
     new-instance v9, Landroid/widget/TextView;
     invoke-direct {v9, p0}, Landroid/widget/TextView;-><init>(Landroid/content/Context;)V
+    # Subtitle depends on the key: the update toggle has its own description.
+    const-string v10, "auto_update"
+    invoke-virtual {p3, v10}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+    move-result v0
+    if-eqz v0, :cond_default_sub
+    const-string v10, "Check GitHub for a new version on launch."
+    goto :cond_sub_set
+    :cond_default_sub
     const-string v10, "Hide this surface in Instagram."
+    :cond_sub_set
     invoke-virtual {v9, v10}, Landroid/widget/TextView;->setText(Ljava/lang/CharSequence;)V
     const/4 v10, 0x2
     const/high16 v0, 0x41500000    # 13.0f
@@ -686,6 +720,12 @@
     move-result-object v10
     invoke-virtual {v8, v10}, Landroidx/appcompat/widget/SwitchCompat;->setThumbTintList(Landroid/content/res/ColorStateList;)V
 
+    # Only "block_*" surface rows are subject to the permanent lock; other
+    # preference rows (e.g. the update toggle) are never frozen.
+    const-string v10, "block_"
+    invoke-virtual {p3, v10}, Ljava/lang/String;->startsWith(Ljava/lang/String;)Z
+    move-result v10
+    if-eqz v10, :cond_row_enabled
     invoke-static {}, Lcom/feurstagram/FeurConfig;->isHardcoreMode()Z
     move-result v10
     if-eqz v10, :cond_row_enabled
