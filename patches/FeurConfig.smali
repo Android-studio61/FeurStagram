@@ -124,6 +124,10 @@
     invoke-virtual {p0, v1}, Ljava/lang/String;->startsWith(Ljava/lang/String;)Z
     move-result v2
     if-eqz v2, :guard_done
+
+    # Hardcore only forbids *relaxing* a block (turning it off). Turning a
+    # block on (p1 == true) is always allowed so users can still tighten.
+    if-nez p1, :guard_done
     return-void
 
     :guard_done
@@ -214,4 +218,58 @@
     invoke-static {v0, v1}, Lcom/feurstagram/FeurConfig;->getBlocked(Ljava/lang/String;Z)Z
     move-result v0
     return v0
+.end method
+
+
+# getLandingPage() -> String. One of "home" (default), "search", "direct",
+# "profile": the surface the app should jump to on cold start.
+.method public static getLandingPage()Ljava/lang/String;
+    .locals 3
+
+    invoke-static {}, Lcom/feurstagram/FeurConfig;->getAppContext()Landroid/content/Context;
+    move-result-object v0
+
+    if-nez v0, :cond_has_ctx
+    const-string v0, "home"
+    return-object v0
+
+    :cond_has_ctx
+    const-string v1, "feurstagram_prefs"
+    const/4 v2, 0x0
+    invoke-virtual {v0, v1, v2}, Landroid/content/Context;->getSharedPreferences(Ljava/lang/String;I)Landroid/content/SharedPreferences;
+    move-result-object v0
+
+    const-string v1, "landing_page"
+    const-string v2, "home"
+    invoke-interface {v0, v1, v2}, Landroid/content/SharedPreferences;->getString(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
+    move-result-object v0
+    return-object v0
+.end method
+
+
+# setLandingPage(String value)
+.method public static setLandingPage(Ljava/lang/String;)V
+    .locals 3
+
+    invoke-static {}, Lcom/feurstagram/FeurConfig;->getAppContext()Landroid/content/Context;
+    move-result-object v0
+
+    if-nez v0, :cond_has_ctx
+    return-void
+
+    :cond_has_ctx
+    const-string v1, "feurstagram_prefs"
+    const/4 v2, 0x0
+    invoke-virtual {v0, v1, v2}, Landroid/content/Context;->getSharedPreferences(Ljava/lang/String;I)Landroid/content/SharedPreferences;
+    move-result-object v0
+
+    invoke-interface {v0}, Landroid/content/SharedPreferences;->edit()Landroid/content/SharedPreferences$Editor;
+    move-result-object v0
+
+    const-string v1, "landing_page"
+    invoke-interface {v0, v1, p0}, Landroid/content/SharedPreferences$Editor;->putString(Ljava/lang/String;Ljava/lang/String;)Landroid/content/SharedPreferences$Editor;
+    move-result-object v0
+
+    invoke-interface {v0}, Landroid/content/SharedPreferences$Editor;->apply()V
+    return-void
 .end method

@@ -54,6 +54,15 @@
     invoke-virtual {p0}, Landroid/view/ViewGroup;->getViewTreeObserver()Landroid/view/ViewTreeObserver;
     move-result-object v1
     invoke-virtual {v1, v0}, Landroid/view/ViewTreeObserver;->addOnGlobalLayoutListener(Landroid/view/ViewTreeObserver$OnGlobalLayoutListener;)V
+
+    # And the landing-page redirect - on cold start it jumps to the user's
+    # chosen surface (Search / Direct / Profile) once the tab is laid out.
+    new-instance v0, Lcom/feurstagram/FeurLandingWatcher;
+    invoke-direct {v0, p0}, Lcom/feurstagram/FeurLandingWatcher;-><init>(Landroid/view/ViewGroup;)V
+
+    invoke-virtual {p0}, Landroid/view/ViewGroup;->getViewTreeObserver()Landroid/view/ViewTreeObserver;
+    move-result-object v1
+    invoke-virtual {v1, v0}, Landroid/view/ViewTreeObserver;->addOnGlobalLayoutListener(Landroid/view/ViewTreeObserver$OnGlobalLayoutListener;)V
     return-void
 .end method
 
@@ -116,31 +125,51 @@
 
     :cond_ok
     :try_start_0
+    # Use a non-floating, full-screen dark theme. A default dialog window is
+    # floating (windowIsFloating=true) and a floating window cannot paint the
+    # system status/navigation bar backgrounds, so their colours would stay
+    # black. Theme_Material_NoActionBar is non-floating and dark.
     new-instance v0, Landroid/app/Dialog;
-    invoke-direct {v0, p0}, Landroid/app/Dialog;-><init>(Landroid/content/Context;)V
+    sget v1, Landroid/R$style;->Theme_Material_NoActionBar:I
+    invoke-direct {v0, p0, v1}, Landroid/app/Dialog;-><init>(Landroid/content/Context;I)V
+
+    # Present as a full-screen page, not a floating card: no title bar.
+    const/4 v1, 0x1                       # Window.FEATURE_NO_TITLE
+    invoke-virtual {v0, v1}, Landroid/app/Dialog;->requestWindowFeature(I)Z
 
     invoke-static {p0, v0}, Lcom/feurstagram/FeurSettings;->buildContent(Landroid/content/Context;Landroid/app/Dialog;)Landroid/view/View;
     move-result-object v1
     invoke-virtual {v0, v1}, Landroid/app/Dialog;->setContentView(Landroid/view/View;)V
 
-    const/4 v1, 0x1
-    invoke-virtual {v0, v1}, Landroid/app/Dialog;->setCanceledOnTouchOutside(Z)V
-
     invoke-virtual {v0}, Landroid/app/Dialog;->getWindow()Landroid/view/Window;
     move-result-object v2
     if-eqz v2, :cond_show
 
+    # Opaque surface-coloured background filling the whole screen.
     new-instance v3, Landroid/graphics/drawable/ColorDrawable;
-    const/4 v4, 0x0
+    const v4, -0xe3e4e1                   # surface
     invoke-direct {v3, v4}, Landroid/graphics/drawable/ColorDrawable;-><init>(I)V
     invoke-virtual {v2, v3}, Landroid/view/Window;->setBackgroundDrawable(Landroid/graphics/drawable/Drawable;)V
 
-    const/4 v3, -0x1
-    const/4 v4, -0x2
-    invoke-virtual {v2, v3, v4}, Landroid/view/Window;->setLayout(II)V
+    const/4 v3, -0x1                       # MATCH_PARENT x MATCH_PARENT
+    invoke-virtual {v2, v3, v3}, Landroid/view/Window;->setLayout(II)V
 
-    const v3, 0x3f19999a    # 0.6f
+    const/4 v3, 0x0                        # no scrim dim behind a full page
     invoke-virtual {v2, v3}, Landroid/view/Window;->setDimAmount(F)V
+
+    # Tint the system status/navigation bars to match the page background
+    # instead of leaving them the default black. Needs the window to draw the
+    # bar backgrounds itself, and the translucent-bar flags cleared so our
+    # colours actually take effect.
+    const v3, 0xc000000                    # FLAG_TRANSLUCENT_STATUS | FLAG_TRANSLUCENT_NAVIGATION
+    invoke-virtual {v2, v3}, Landroid/view/Window;->clearFlags(I)V
+
+    const/high16 v3, -0x80000000           # FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS
+    invoke-virtual {v2, v3}, Landroid/view/Window;->addFlags(I)V
+
+    const v3, -0xe3e4e1                    # surface
+    invoke-virtual {v2, v3}, Landroid/view/Window;->setStatusBarColor(I)V
+    invoke-virtual {v2, v3}, Landroid/view/Window;->setNavigationBarColor(I)V
 
     :cond_show
     invoke-virtual {v0}, Landroid/app/Dialog;->show()V
@@ -162,210 +191,363 @@
 
 
 .method private static buildContent(Landroid/content/Context;Landroid/app/Dialog;)Landroid/view/View;
-    .locals 14
+    .locals 9
 
     invoke-static {}, Lcom/feurstagram/FeurConfig;->isHardcoreMode()Z
     move-result v0
 
-    new-instance v1, Landroid/widget/FrameLayout;
-    invoke-direct {v1, p0}, Landroid/widget/FrameLayout;-><init>(Landroid/content/Context;)V
+    # ---- root: full-screen vertical page (scroll area + pinned button bar) ----
+    new-instance v1, Landroid/widget/LinearLayout;
+    invoke-direct {v1, p0}, Landroid/widget/LinearLayout;-><init>(Landroid/content/Context;)V
+    const/4 v2, 0x1
+    invoke-virtual {v1, v2}, Landroid/widget/LinearLayout;->setOrientation(I)V
 
-    const/high16 v2, 0x41c00000    # 24.0f
+    const/high16 v2, 0x41c00000    # 24.0f side/bottom padding
     invoke-static {p0, v2}, Lcom/feurstagram/FeurSettings;->dp(Landroid/content/Context;F)I
     move-result v2
-    invoke-virtual {v1, v2, v2, v2, v2}, Landroid/widget/FrameLayout;->setPadding(IIII)V
+    # Top padding = real status-bar height + a comfortable gap. The window is
+    # edge-to-edge (non-floating theme), so the content draws under the status
+    # bar; padding by the measured bar height keeps the title clear on any
+    # device instead of relying on a fragile fixed value.
+    invoke-static {p0}, Lcom/feurstagram/FeurSettings;->statusBarHeight(Landroid/content/Context;)I
+    move-result v3
+    const/high16 v4, 0x41c00000    # 24.0f gap below the status bar
+    invoke-static {p0, v4}, Lcom/feurstagram/FeurSettings;->dp(Landroid/content/Context;F)I
+    move-result v4
+    add-int/2addr v3, v4
+    invoke-virtual {v1, v2, v3, v2, v2}, Landroid/widget/LinearLayout;->setPadding(IIII)V
 
-    new-instance v3, Landroid/widget/LinearLayout;
-    invoke-direct {v3, p0}, Landroid/widget/LinearLayout;-><init>(Landroid/content/Context;)V
-    const/4 v4, 0x1
-    invoke-virtual {v3, v4}, Landroid/widget/LinearLayout;->setOrientation(I)V
+    # ---- scroll container ----
+    new-instance v3, Landroid/widget/ScrollView;
+    invoke-direct {v3, p0}, Landroid/widget/ScrollView;-><init>(Landroid/content/Context;)V
 
-    const v4, -0xe3e4e1
-    const/high16 v5, 0x41e00000    # 28.0f
-    invoke-static {v4, v5, p0}, Lcom/feurstagram/FeurSettings;->roundedRect(IFLandroid/content/Context;)Landroid/graphics/drawable/GradientDrawable;
-    move-result-object v4
-    invoke-virtual {v3, v4}, Landroid/widget/LinearLayout;->setBackground(Landroid/graphics/drawable/Drawable;)V
-    invoke-virtual {v3, v2, v2, v2, v2}, Landroid/widget/LinearLayout;->setPadding(IIII)V
+    new-instance v4, Landroid/widget/LinearLayout;
+    invoke-direct {v4, p0}, Landroid/widget/LinearLayout;-><init>(Landroid/content/Context;)V
+    const/4 v5, 0x1
+    invoke-virtual {v4, v5}, Landroid/widget/LinearLayout;->setOrientation(I)V
 
-    new-instance v4, Landroid/widget/FrameLayout$LayoutParams;
-    const/4 v5, -0x1
-    const/4 v6, -0x2
-    invoke-direct {v4, v5, v6}, Landroid/widget/FrameLayout$LayoutParams;-><init>(II)V
-    invoke-virtual {v1, v3, v4}, Landroid/widget/FrameLayout;->addView(Landroid/view/View;Landroid/view/ViewGroup$LayoutParams;)V
-
-    new-instance v4, Landroid/widget/TextView;
-    invoke-direct {v4, p0}, Landroid/widget/TextView;-><init>(Landroid/content/Context;)V
-    const-string v5, "FeurStagram"
-    invoke-virtual {v4, v5}, Landroid/widget/TextView;->setText(Ljava/lang/CharSequence;)V
-    const/4 v5, 0x2
-    const/high16 v6, 0x41b00000    # 22.0f
-    invoke-virtual {v4, v5, v6}, Landroid/widget/TextView;->setTextSize(IF)V
-    const v5, -0x191e1b
-    invoke-virtual {v4, v5}, Landroid/widget/TextView;->setTextColor(I)V
+    # title
+    new-instance v5, Landroid/widget/TextView;
+    invoke-direct {v5, p0}, Landroid/widget/TextView;-><init>(Landroid/content/Context;)V
+    const-string v6, "FeurStagram"
+    invoke-virtual {v5, v6}, Landroid/widget/TextView;->setText(Ljava/lang/CharSequence;)V
+    const/4 v6, 0x2
+    const/high16 v7, 0x41b00000    # 22.0f
+    invoke-virtual {v5, v6, v7}, Landroid/widget/TextView;->setTextSize(IF)V
+    const v6, -0x191e1b
+    invoke-virtual {v5, v6}, Landroid/widget/TextView;->setTextColor(I)V
     const-string v6, "sans-serif-medium"
     const/4 v7, 0x0
     invoke-static {v6, v7}, Landroid/graphics/Typeface;->create(Ljava/lang/String;I)Landroid/graphics/Typeface;
     move-result-object v6
-    invoke-virtual {v4, v6}, Landroid/widget/TextView;->setTypeface(Landroid/graphics/Typeface;)V
-    invoke-virtual {v3, v4}, Landroid/widget/LinearLayout;->addView(Landroid/view/View;)V
+    invoke-virtual {v5, v6}, Landroid/widget/TextView;->setTypeface(Landroid/graphics/Typeface;)V
+    invoke-virtual {v4, v5}, Landroid/widget/LinearLayout;->addView(Landroid/view/View;)V
 
-    new-instance v4, Landroid/widget/TextView;
-    invoke-direct {v4, p0}, Landroid/widget/TextView;-><init>(Landroid/content/Context;)V
+    # subtitle (permanent-lock aware)
+    new-instance v5, Landroid/widget/TextView;
+    invoke-direct {v5, p0}, Landroid/widget/TextView;-><init>(Landroid/content/Context;)V
     if-eqz v0, :cond_subtitle_normal
-    const-string v6, "Permanent lock active - reinstall to unlock."
+    const-string v6, "Permanent lock on. You can tighten blocks but not loosen them. Reinstall to fully unlock."
     goto :cond_subtitle_set
 
     :cond_subtitle_normal
     const-string v6, "Choose what to hide. Tap Done to clear cache and restart."
 
     :cond_subtitle_set
-    invoke-virtual {v4, v6}, Landroid/widget/TextView;->setText(Ljava/lang/CharSequence;)V
+    invoke-virtual {v5, v6}, Landroid/widget/TextView;->setText(Ljava/lang/CharSequence;)V
     const/4 v6, 0x2
     const/high16 v7, 0x41600000    # 14.0f
-    invoke-virtual {v4, v6, v7}, Landroid/widget/TextView;->setTextSize(IF)V
+    invoke-virtual {v5, v6, v7}, Landroid/widget/TextView;->setTextSize(IF)V
     const v6, -0x353b30
-    invoke-virtual {v4, v6}, Landroid/widget/TextView;->setTextColor(I)V
+    invoke-virtual {v5, v6}, Landroid/widget/TextView;->setTextColor(I)V
     const/high16 v7, 0x40800000    # 4.0f
     invoke-static {p0, v7}, Lcom/feurstagram/FeurSettings;->dp(Landroid/content/Context;F)I
     move-result v7
     const/4 v8, 0x0
-    invoke-virtual {v4, v8, v7, v8, v8}, Landroid/widget/TextView;->setPadding(IIII)V
-    invoke-virtual {v3, v4}, Landroid/widget/LinearLayout;->addView(Landroid/view/View;)V
+    invoke-virtual {v5, v8, v7, v8, v8}, Landroid/widget/TextView;->setPadding(IIII)V
+    invoke-virtual {v4, v5}, Landroid/widget/LinearLayout;->addView(Landroid/view/View;)V
 
-    new-instance v4, Landroid/widget/TextView;
-    invoke-direct {v4, p0}, Landroid/widget/TextView;-><init>(Landroid/content/Context;)V
-    const-string v7, "BLOCKED SURFACES"
-    invoke-virtual {v4, v7}, Landroid/widget/TextView;->setText(Ljava/lang/CharSequence;)V
-    const/4 v7, 0x2
-    const/high16 v8, 0x41400000    # 12.0f
-    invoke-virtual {v4, v7, v8}, Landroid/widget/TextView;->setTextSize(IF)V
-    invoke-virtual {v4, v6}, Landroid/widget/TextView;->setTextColor(I)V
-    const-string v7, "sans-serif-medium"
-    const/4 v8, 0x0
-    invoke-static {v7, v8}, Landroid/graphics/Typeface;->create(Ljava/lang/String;I)Landroid/graphics/Typeface;
-    move-result-object v7
-    invoke-virtual {v4, v7}, Landroid/widget/TextView;->setTypeface(Landroid/graphics/Typeface;)V
-    const/high16 v7, 0x41a00000    # 20.0f
-    invoke-static {p0, v7}, Lcom/feurstagram/FeurSettings;->dp(Landroid/content/Context;F)I
-    move-result v7
-    const/high16 v8, 0x41200000    # 10.0f
-    invoke-static {p0, v8}, Lcom/feurstagram/FeurSettings;->dp(Landroid/content/Context;F)I
-    move-result v8
-    const/4 v9, 0x0
-    invoke-virtual {v4, v9, v7, v9, v8}, Landroid/widget/TextView;->setPadding(IIII)V
-    invoke-virtual {v3, v4}, Landroid/widget/LinearLayout;->addView(Landroid/view/View;)V
+    # ---- BLOCKED SURFACES section ----
+    const-string v5, "BLOCKED SURFACES"
+    invoke-static {p0, v4, v5}, Lcom/feurstagram/FeurSettings;->addSectionHeader(Landroid/content/Context;Landroid/widget/LinearLayout;Ljava/lang/String;)V
 
-    new-instance v4, Landroid/widget/LinearLayout;
-    invoke-direct {v4, p0}, Landroid/widget/LinearLayout;-><init>(Landroid/content/Context;)V
-    const/4 v7, 0x1
-    invoke-virtual {v4, v7}, Landroid/widget/LinearLayout;->setOrientation(I)V
-    const v7, -0xd4d6d0
-    const/high16 v8, 0x41a00000    # 20.0f
-    invoke-static {v7, v8, p0}, Lcom/feurstagram/FeurSettings;->roundedRect(IFLandroid/content/Context;)Landroid/graphics/drawable/GradientDrawable;
-    move-result-object v7
-    invoke-virtual {v4, v7}, Landroid/widget/LinearLayout;->setBackground(Landroid/graphics/drawable/Drawable;)V
-    const/high16 v7, 0x40800000    # 4.0f
-    invoke-static {p0, v7}, Lcom/feurstagram/FeurSettings;->dp(Landroid/content/Context;F)I
-    move-result v7
-    const/4 v8, 0x0
-    invoke-virtual {v4, v8, v7, v8, v7}, Landroid/widget/LinearLayout;->setPadding(IIII)V
-    invoke-virtual {v3, v4}, Landroid/widget/LinearLayout;->addView(Landroid/view/View;)V
+    invoke-static {p0}, Lcom/feurstagram/FeurSettings;->makeSectionCard(Landroid/content/Context;)Landroid/widget/LinearLayout;
+    move-result-object v5
+    invoke-virtual {v4, v5}, Landroid/widget/LinearLayout;->addView(Landroid/view/View;)V
 
-    const-string v7, "Home Feed"
-    const-string v8, "block_feed"
+    const-string v6, "Home Feed"
+    const-string v7, "block_feed"
     invoke-static {}, Lcom/feurstagram/FeurConfig;->isFeedBlocked()Z
-    move-result v9
-    invoke-static {p0, v4, v7, v8, v9}, Lcom/feurstagram/FeurSettings;->addRow(Landroid/content/Context;Landroid/widget/LinearLayout;Ljava/lang/String;Ljava/lang/String;Z)V
+    move-result v8
+    invoke-static {p0, v5, v6, v7, v8}, Lcom/feurstagram/FeurSettings;->addRow(Landroid/content/Context;Landroid/widget/LinearLayout;Ljava/lang/String;Ljava/lang/String;Z)V
 
-    const-string v7, "Explore"
-    const-string v8, "block_explore"
+    const-string v6, "Explore"
+    const-string v7, "block_explore"
     invoke-static {}, Lcom/feurstagram/FeurConfig;->isExploreBlocked()Z
-    move-result v9
-    invoke-static {p0, v4, v7, v8, v9}, Lcom/feurstagram/FeurSettings;->addRow(Landroid/content/Context;Landroid/widget/LinearLayout;Ljava/lang/String;Ljava/lang/String;Z)V
+    move-result v8
+    invoke-static {p0, v5, v6, v7, v8}, Lcom/feurstagram/FeurSettings;->addRow(Landroid/content/Context;Landroid/widget/LinearLayout;Ljava/lang/String;Ljava/lang/String;Z)V
 
-    const-string v7, "Reels"
-    const-string v8, "block_reels"
+    const-string v6, "Reels"
+    const-string v7, "block_reels"
     invoke-static {}, Lcom/feurstagram/FeurConfig;->isReelsBlocked()Z
-    move-result v9
-    invoke-static {p0, v4, v7, v8, v9}, Lcom/feurstagram/FeurSettings;->addRow(Landroid/content/Context;Landroid/widget/LinearLayout;Ljava/lang/String;Ljava/lang/String;Z)V
+    move-result v8
+    invoke-static {p0, v5, v6, v7, v8}, Lcom/feurstagram/FeurSettings;->addRow(Landroid/content/Context;Landroid/widget/LinearLayout;Ljava/lang/String;Ljava/lang/String;Z)V
 
-    const-string v7, "Stories"
-    const-string v8, "block_stories"
+    const-string v6, "Stories"
+    const-string v7, "block_stories"
     invoke-static {}, Lcom/feurstagram/FeurConfig;->isStoriesBlocked()Z
-    move-result v9
-    invoke-static {p0, v4, v7, v8, v9}, Lcom/feurstagram/FeurSettings;->addRow(Landroid/content/Context;Landroid/widget/LinearLayout;Ljava/lang/String;Ljava/lang/String;Z)V
+    move-result v8
+    invoke-static {p0, v5, v6, v7, v8}, Lcom/feurstagram/FeurSettings;->addRow(Landroid/content/Context;Landroid/widget/LinearLayout;Ljava/lang/String;Ljava/lang/String;Z)V
 
-    const-string v7, "Instants"
-    const-string v8, "block_instants"
+    const-string v6, "Instants"
+    const-string v7, "block_instants"
     invoke-static {}, Lcom/feurstagram/FeurConfig;->isInstantsBlocked()Z
-    move-result v9
-    invoke-static {p0, v4, v7, v8, v9}, Lcom/feurstagram/FeurSettings;->addRow(Landroid/content/Context;Landroid/widget/LinearLayout;Ljava/lang/String;Ljava/lang/String;Z)V
+    move-result v8
+    invoke-static {p0, v5, v6, v7, v8}, Lcom/feurstagram/FeurSettings;->addRow(Landroid/content/Context;Landroid/widget/LinearLayout;Ljava/lang/String;Ljava/lang/String;Z)V
 
-    const-string v7, "Notes"
-    const-string v8, "block_notes"
+    const-string v6, "Notes"
+    const-string v7, "block_notes"
     invoke-static {}, Lcom/feurstagram/FeurConfig;->isNotesBlocked()Z
-    move-result v9
-    invoke-static {p0, v4, v7, v8, v9}, Lcom/feurstagram/FeurSettings;->addRow(Landroid/content/Context;Landroid/widget/LinearLayout;Ljava/lang/String;Ljava/lang/String;Z)V
+    move-result v8
+    invoke-static {p0, v5, v6, v7, v8}, Lcom/feurstagram/FeurSettings;->addRow(Landroid/content/Context;Landroid/widget/LinearLayout;Ljava/lang/String;Ljava/lang/String;Z)V
 
-    new-instance v7, Landroid/widget/LinearLayout;
-    invoke-direct {v7, p0}, Landroid/widget/LinearLayout;-><init>(Landroid/content/Context;)V
-    const/4 v8, 0x0
-    invoke-virtual {v7, v8}, Landroid/widget/LinearLayout;->setOrientation(I)V
-    const v8, 0x800005
-    invoke-virtual {v7, v8}, Landroid/widget/LinearLayout;->setGravity(I)V
+    # ---- LANDING PAGE section ----
+    const-string v5, "LANDING PAGE"
+    invoke-static {p0, v4, v5}, Lcom/feurstagram/FeurSettings;->addSectionHeader(Landroid/content/Context;Landroid/widget/LinearLayout;Ljava/lang/String;)V
 
-    new-instance v8, Landroid/widget/LinearLayout$LayoutParams;
-    const/4 v9, -0x1
-    const/4 v10, -0x2
-    invoke-direct {v8, v9, v10}, Landroid/widget/LinearLayout$LayoutParams;-><init>(II)V
-    const/high16 v9, 0x41a00000    # 20.0f
-    invoke-static {p0, v9}, Lcom/feurstagram/FeurSettings;->dp(Landroid/content/Context;F)I
-    move-result v9
-    const/4 v10, 0x0
-    invoke-virtual {v8, v10, v9, v10, v10}, Landroid/widget/LinearLayout$LayoutParams;->setMargins(IIII)V
-    invoke-virtual {v3, v7, v8}, Landroid/widget/LinearLayout;->addView(Landroid/view/View;Landroid/view/ViewGroup$LayoutParams;)V
+    invoke-static {p0}, Lcom/feurstagram/FeurSettings;->buildLandingCard(Landroid/content/Context;)Landroid/view/View;
+    move-result-object v5
+    invoke-virtual {v4, v5}, Landroid/widget/LinearLayout;->addView(Landroid/view/View;)V
 
-    const-string v10, "Permanent lock"
-    const v11, -0xb0c875
-    const v12, -0x152201
-    const/4 v13, 0x1
-    invoke-static {p0, v10, v11, v12, v13}, Lcom/feurstagram/FeurSettings;->makeButton(Landroid/content/Context;Ljava/lang/String;IIZ)Landroid/widget/Button;
-    move-result-object v10
-    new-instance v11, Lcom/feurstagram/FeurHardcoreButtonClickListener;
-    invoke-direct {v11, p0, p1}, Lcom/feurstagram/FeurHardcoreButtonClickListener;-><init>(Landroid/content/Context;Landroid/app/Dialog;)V
-    invoke-virtual {v10, v11}, Landroid/widget/Button;->setOnClickListener(Landroid/view/View$OnClickListener;)V
+    # column -> scroll -> root (scroll takes the remaining height)
+    invoke-virtual {v3, v4}, Landroid/widget/ScrollView;->addView(Landroid/view/View;)V
+
+    new-instance v5, Landroid/widget/LinearLayout$LayoutParams;
+    const/4 v6, -0x1
+    const/4 v7, 0x0
+    const/high16 v8, 0x3f800000    # weight 1.0f
+    invoke-direct {v5, v6, v7, v8}, Landroid/widget/LinearLayout$LayoutParams;-><init>(IIF)V
+    invoke-virtual {v1, v3, v5}, Landroid/widget/LinearLayout;->addView(Landroid/view/View;Landroid/view/ViewGroup$LayoutParams;)V
+
+    # ---- pinned bottom action bar (always visible: fixes the missing Done) ----
+    new-instance v3, Landroid/widget/LinearLayout;
+    invoke-direct {v3, p0}, Landroid/widget/LinearLayout;-><init>(Landroid/content/Context;)V
+    const/4 v4, 0x0
+    invoke-virtual {v3, v4}, Landroid/widget/LinearLayout;->setOrientation(I)V
+    const v4, 0x800005
+    invoke-virtual {v3, v4}, Landroid/widget/LinearLayout;->setGravity(I)V
+
+    new-instance v4, Landroid/widget/LinearLayout$LayoutParams;
+    const/4 v5, -0x1
+    const/4 v6, -0x2
+    invoke-direct {v4, v5, v6}, Landroid/widget/LinearLayout$LayoutParams;-><init>(II)V
+    const/high16 v5, 0x41800000    # 16.0f top margin
+    invoke-static {p0, v5}, Lcom/feurstagram/FeurSettings;->dp(Landroid/content/Context;F)I
+    move-result v5
+    const/4 v6, 0x0
+    invoke-virtual {v4, v6, v5, v6, v6}, Landroid/widget/LinearLayout$LayoutParams;->setMargins(IIII)V
+    invoke-virtual {v1, v3, v4}, Landroid/widget/LinearLayout;->addView(Landroid/view/View;Landroid/view/ViewGroup$LayoutParams;)V
+
+    # Permanent lock button
+    const-string v4, "Permanent lock"
+    const v5, -0xb0c875
+    const v6, -0x152201
+    const/4 v7, 0x1
+    invoke-static {p0, v4, v5, v6, v7}, Lcom/feurstagram/FeurSettings;->makeButton(Landroid/content/Context;Ljava/lang/String;IIZ)Landroid/widget/Button;
+    move-result-object v4
+    new-instance v5, Lcom/feurstagram/FeurHardcoreButtonClickListener;
+    invoke-direct {v5, p0, p1}, Lcom/feurstagram/FeurHardcoreButtonClickListener;-><init>(Landroid/content/Context;Landroid/app/Dialog;)V
+    invoke-virtual {v4, v5}, Landroid/widget/Button;->setOnClickListener(Landroid/view/View$OnClickListener;)V
     if-eqz v0, :cond_perm_enabled
-    const/4 v11, 0x0
-    invoke-virtual {v10, v11}, Landroid/widget/Button;->setEnabled(Z)V
-    const v11, 0x3f19999a    # 0.6f
-    invoke-virtual {v10, v11}, Landroid/widget/Button;->setAlpha(F)V
+    const/4 v5, 0x0
+    invoke-virtual {v4, v5}, Landroid/widget/Button;->setEnabled(Z)V
+    const v5, 0x3f19999a    # 0.6f
+    invoke-virtual {v4, v5}, Landroid/widget/Button;->setAlpha(F)V
 
     :cond_perm_enabled
-    invoke-virtual {v7, v10}, Landroid/widget/LinearLayout;->addView(Landroid/view/View;)V
+    invoke-virtual {v3, v4}, Landroid/widget/LinearLayout;->addView(Landroid/view/View;)V
 
-    new-instance v11, Landroid/view/View;
-    invoke-direct {v11, p0}, Landroid/view/View;-><init>(Landroid/content/Context;)V
-    const/high16 v12, 0x41000000    # 8.0f
-    invoke-static {p0, v12}, Lcom/feurstagram/FeurSettings;->dp(Landroid/content/Context;F)I
-    move-result v12
-    new-instance v8, Landroid/widget/LinearLayout$LayoutParams;
-    const/4 v9, 0x1
-    invoke-direct {v8, v12, v9}, Landroid/widget/LinearLayout$LayoutParams;-><init>(II)V
-    invoke-virtual {v11, v8}, Landroid/view/View;->setLayoutParams(Landroid/view/ViewGroup$LayoutParams;)V
-    invoke-virtual {v7, v11}, Landroid/widget/LinearLayout;->addView(Landroid/view/View;)V
+    # spacer between the two buttons
+    new-instance v4, Landroid/view/View;
+    invoke-direct {v4, p0}, Landroid/view/View;-><init>(Landroid/content/Context;)V
+    const/high16 v5, 0x41000000    # 8.0f
+    invoke-static {p0, v5}, Lcom/feurstagram/FeurSettings;->dp(Landroid/content/Context;F)I
+    move-result v5
+    new-instance v6, Landroid/widget/LinearLayout$LayoutParams;
+    const/4 v7, 0x1
+    invoke-direct {v6, v5, v7}, Landroid/widget/LinearLayout$LayoutParams;-><init>(II)V
+    invoke-virtual {v4, v6}, Landroid/view/View;->setLayoutParams(Landroid/view/ViewGroup$LayoutParams;)V
+    invoke-virtual {v3, v4}, Landroid/widget/LinearLayout;->addView(Landroid/view/View;)V
 
-    const-string v8, "Done"
-    const v9, -0x2f4301
-    const v11, -0xc8e18d
-    const/4 v12, 0x1
-    invoke-static {p0, v8, v9, v11, v12}, Lcom/feurstagram/FeurSettings;->makeButton(Landroid/content/Context;Ljava/lang/String;IIZ)Landroid/widget/Button;
-    move-result-object v8
-    new-instance v9, Lcom/feurstagram/FeurDoneButtonClickListener;
-    invoke-direct {v9, p0, p1}, Lcom/feurstagram/FeurDoneButtonClickListener;-><init>(Landroid/content/Context;Landroid/app/Dialog;)V
-    invoke-virtual {v8, v9}, Landroid/widget/Button;->setOnClickListener(Landroid/view/View$OnClickListener;)V
-    invoke-virtual {v7, v8}, Landroid/widget/LinearLayout;->addView(Landroid/view/View;)V
+    # Done button
+    const-string v4, "Done"
+    const v5, -0x2f4301
+    const v6, -0xc8e18d
+    const/4 v7, 0x1
+    invoke-static {p0, v4, v5, v6, v7}, Lcom/feurstagram/FeurSettings;->makeButton(Landroid/content/Context;Ljava/lang/String;IIZ)Landroid/widget/Button;
+    move-result-object v4
+    new-instance v5, Lcom/feurstagram/FeurDoneButtonClickListener;
+    invoke-direct {v5, p0, p1}, Lcom/feurstagram/FeurDoneButtonClickListener;-><init>(Landroid/content/Context;Landroid/app/Dialog;)V
+    invoke-virtual {v4, v5}, Landroid/widget/Button;->setOnClickListener(Landroid/view/View$OnClickListener;)V
+    invoke-virtual {v3, v4}, Landroid/widget/LinearLayout;->addView(Landroid/view/View;)V
 
     return-object v1
+.end method
+
+
+# Builds an all-caps section label in the same style as the original
+# "BLOCKED SURFACES" heading and appends it to `parent`.
+.method private static addSectionHeader(Landroid/content/Context;Landroid/widget/LinearLayout;Ljava/lang/String;)V
+    .locals 6
+
+    new-instance v0, Landroid/widget/TextView;
+    invoke-direct {v0, p0}, Landroid/widget/TextView;-><init>(Landroid/content/Context;)V
+    invoke-virtual {v0, p2}, Landroid/widget/TextView;->setText(Ljava/lang/CharSequence;)V
+    const/4 v1, 0x2
+    const/high16 v2, 0x41400000    # 12.0f
+    invoke-virtual {v0, v1, v2}, Landroid/widget/TextView;->setTextSize(IF)V
+    const v1, -0x353b30
+    invoke-virtual {v0, v1}, Landroid/widget/TextView;->setTextColor(I)V
+    const-string v1, "sans-serif-medium"
+    const/4 v2, 0x0
+    invoke-static {v1, v2}, Landroid/graphics/Typeface;->create(Ljava/lang/String;I)Landroid/graphics/Typeface;
+    move-result-object v1
+    invoke-virtual {v0, v1}, Landroid/widget/TextView;->setTypeface(Landroid/graphics/Typeface;)V
+    const/high16 v1, 0x41a00000    # 20.0f
+    invoke-static {p0, v1}, Lcom/feurstagram/FeurSettings;->dp(Landroid/content/Context;F)I
+    move-result v1
+    const/high16 v2, 0x41200000    # 10.0f
+    invoke-static {p0, v2}, Lcom/feurstagram/FeurSettings;->dp(Landroid/content/Context;F)I
+    move-result v2
+    const/4 v3, 0x0
+    invoke-virtual {v0, v3, v1, v3, v2}, Landroid/widget/TextView;->setPadding(IIII)V
+    invoke-virtual {p1, v0}, Landroid/widget/LinearLayout;->addView(Landroid/view/View;)V
+    return-void
+.end method
+
+
+# A rounded "surface container" card (vertical LinearLayout) used to group
+# rows, mirroring the original blocked-surfaces container.
+.method private static makeSectionCard(Landroid/content/Context;)Landroid/widget/LinearLayout;
+    .locals 4
+
+    new-instance v0, Landroid/widget/LinearLayout;
+    invoke-direct {v0, p0}, Landroid/widget/LinearLayout;-><init>(Landroid/content/Context;)V
+    const/4 v1, 0x1
+    invoke-virtual {v0, v1}, Landroid/widget/LinearLayout;->setOrientation(I)V
+    const v1, -0xd4d6d0
+    const/high16 v2, 0x41a00000    # 20.0f
+    invoke-static {v1, v2, p0}, Lcom/feurstagram/FeurSettings;->roundedRect(IFLandroid/content/Context;)Landroid/graphics/drawable/GradientDrawable;
+    move-result-object v1
+    invoke-virtual {v0, v1}, Landroid/widget/LinearLayout;->setBackground(Landroid/graphics/drawable/Drawable;)V
+    const/high16 v1, 0x40800000    # 4.0f
+    invoke-static {p0, v1}, Lcom/feurstagram/FeurSettings;->dp(Landroid/content/Context;F)I
+    move-result v1
+    const/4 v2, 0x0
+    invoke-virtual {v0, v2, v1, v2, v1}, Landroid/widget/LinearLayout;->setPadding(IIII)V
+    return-object v0
+.end method
+
+
+# Landing-page card: a RadioGroup with one option per startup surface.
+.method private static buildLandingCard(Landroid/content/Context;)Landroid/view/View;
+    .locals 6
+
+    invoke-static {p0}, Lcom/feurstagram/FeurSettings;->makeSectionCard(Landroid/content/Context;)Landroid/widget/LinearLayout;
+    move-result-object v0
+
+    new-instance v1, Landroid/widget/RadioGroup;
+    invoke-direct {v1, p0}, Landroid/widget/RadioGroup;-><init>(Landroid/content/Context;)V
+    const/4 v2, 0x1
+    invoke-virtual {v1, v2}, Landroid/widget/RadioGroup;->setOrientation(I)V
+    const/high16 v2, 0x41000000    # 8.0f horizontal inset
+    invoke-static {p0, v2}, Lcom/feurstagram/FeurSettings;->dp(Landroid/content/Context;F)I
+    move-result v2
+    const/4 v3, 0x0
+    invoke-virtual {v1, v2, v3, v2, v3}, Landroid/widget/RadioGroup;->setPadding(IIII)V
+
+    invoke-static {}, Lcom/feurstagram/FeurConfig;->getLandingPage()Ljava/lang/String;
+    move-result-object v2
+
+    const-string v3, "home"
+    invoke-virtual {v2, v3}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+    move-result v3
+    const-string v4, "Home feed"
+    const/4 v5, 0x1
+    invoke-static {p0, v1, v4, v5, v3}, Lcom/feurstagram/FeurSettings;->addLandingOption(Landroid/content/Context;Landroid/widget/RadioGroup;Ljava/lang/String;IZ)V
+
+    const-string v3, "search"
+    invoke-virtual {v2, v3}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+    move-result v3
+    const-string v4, "Search"
+    const/4 v5, 0x2
+    invoke-static {p0, v1, v4, v5, v3}, Lcom/feurstagram/FeurSettings;->addLandingOption(Landroid/content/Context;Landroid/widget/RadioGroup;Ljava/lang/String;IZ)V
+
+    const-string v3, "direct"
+    invoke-virtual {v2, v3}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+    move-result v3
+    const-string v4, "Direct messages"
+    const/4 v5, 0x3
+    invoke-static {p0, v1, v4, v5, v3}, Lcom/feurstagram/FeurSettings;->addLandingOption(Landroid/content/Context;Landroid/widget/RadioGroup;Ljava/lang/String;IZ)V
+
+    const-string v3, "profile"
+    invoke-virtual {v2, v3}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+    move-result v3
+    const-string v4, "Profile"
+    const/4 v5, 0x4
+    invoke-static {p0, v1, v4, v5, v3}, Lcom/feurstagram/FeurSettings;->addLandingOption(Landroid/content/Context;Landroid/widget/RadioGroup;Ljava/lang/String;IZ)V
+
+    new-instance v3, Lcom/feurstagram/FeurLandingListener;
+    invoke-direct {v3}, Lcom/feurstagram/FeurLandingListener;-><init>()V
+    invoke-virtual {v1, v3}, Landroid/widget/RadioGroup;->setOnCheckedChangeListener(Landroid/widget/RadioGroup$OnCheckedChangeListener;)V
+
+    invoke-virtual {v0, v1}, Landroid/widget/LinearLayout;->addView(Landroid/view/View;)V
+    return-object v0
+.end method
+
+
+# A styled RadioButton landing option appended to `group`.
+.method private static addLandingOption(Landroid/content/Context;Landroid/widget/RadioGroup;Ljava/lang/String;IZ)V
+    .locals 6
+
+    new-instance v0, Landroid/widget/RadioButton;
+    invoke-direct {v0, p0}, Landroid/widget/RadioButton;-><init>(Landroid/content/Context;)V
+    invoke-virtual {v0, p2}, Landroid/widget/RadioButton;->setText(Ljava/lang/CharSequence;)V
+    invoke-virtual {v0, p3}, Landroid/widget/RadioButton;->setId(I)V
+    invoke-virtual {v0, p4}, Landroid/widget/RadioButton;->setChecked(Z)V
+
+    const/4 v1, 0x2
+    const/high16 v2, 0x41800000    # 16.0f
+    invoke-virtual {v0, v1, v2}, Landroid/widget/RadioButton;->setTextSize(IF)V
+    const v1, -0x191e1b
+    invoke-virtual {v0, v1}, Landroid/widget/RadioButton;->setTextColor(I)V
+
+    const/high16 v1, 0x41800000    # 16.0f gap after the radio circle
+    invoke-static {p0, v1}, Lcom/feurstagram/FeurSettings;->dp(Landroid/content/Context;F)I
+    move-result v1
+    const/high16 v2, 0x41400000    # 12.0f vertical padding
+    invoke-static {p0, v2}, Lcom/feurstagram/FeurSettings;->dp(Landroid/content/Context;F)I
+    move-result v2
+    const/4 v3, 0x0
+    invoke-virtual {v0, v1, v2, v3, v2}, Landroid/widget/RadioButton;->setPadding(IIII)V
+
+    const/high16 v1, 0x42600000    # 56.0f min height (touch target)
+    invoke-static {p0, v1}, Lcom/feurstagram/FeurSettings;->dp(Landroid/content/Context;F)I
+    move-result v1
+    invoke-virtual {v0, v1}, Landroid/widget/RadioButton;->setMinimumHeight(I)V
+
+    const v1, -0x2f4301           # primary (checked)
+    const v2, -0x6c7067           # outline (unchecked)
+    invoke-static {v1, v2}, Lcom/feurstagram/FeurSettings;->buildStateList(II)Landroid/content/res/ColorStateList;
+    move-result-object v1
+    invoke-virtual {v0, v1}, Landroid/widget/RadioButton;->setButtonTintList(Landroid/content/res/ColorStateList;)V
+
+    new-instance v1, Landroid/widget/RadioGroup$LayoutParams;
+    const/4 v2, -0x1
+    const/4 v3, -0x2
+    invoke-direct {v1, v2, v3}, Landroid/widget/RadioGroup$LayoutParams;-><init>(II)V
+    invoke-virtual {p1, v0, v1}, Landroid/widget/RadioGroup;->addView(Landroid/view/View;Landroid/view/ViewGroup$LayoutParams;)V
+    return-void
 .end method
 
 
@@ -465,6 +647,9 @@
     invoke-static {}, Lcom/feurstagram/FeurConfig;->isHardcoreMode()Z
     move-result v10
     if-eqz v10, :cond_row_enabled
+    # Permanent lock: only freeze rows that are already blocked. Rows that are
+    # still unblocked stay toggleable so the user can make them stricter.
+    if-eqz p4, :cond_row_enabled
     const/4 v10, 0x0
     invoke-virtual {v8, v10}, Landroidx/appcompat/widget/SwitchCompat;->setEnabled(Z)V
     const v10, 0x3ec28f5c    # 0.38f
@@ -489,6 +674,31 @@
     invoke-virtual {p1, v10}, Landroid/widget/LinearLayout;->addView(Landroid/view/View;)V
 
     return-void
+.end method
+
+
+# Height of the system status bar in pixels, read from the platform resource
+# "status_bar_height". Returns 0 when it can't be resolved.
+.method public static statusBarHeight(Landroid/content/Context;)I
+    .locals 4
+
+    invoke-virtual {p0}, Landroid/content/Context;->getResources()Landroid/content/res/Resources;
+    move-result-object v0
+
+    const-string v1, "status_bar_height"
+    const-string v2, "dimen"
+    const-string v3, "android"
+    invoke-virtual {v0, v1, v2, v3}, Landroid/content/res/Resources;->getIdentifier(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)I
+    move-result v1
+
+    if-nez v1, :cond_have
+    const/4 v0, 0x0
+    return v0
+
+    :cond_have
+    invoke-virtual {v0, v1}, Landroid/content/res/Resources;->getDimensionPixelSize(I)I
+    move-result v0
+    return v0
 .end method
 
 

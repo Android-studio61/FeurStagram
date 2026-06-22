@@ -131,7 +131,7 @@ You have two options:
 
 All content blocks are **individual runtime toggles** — long-press the Home
 tab at the bottom-left of the main tab bar to open the FeurStagram settings
-dialog and check/uncheck what you want blocked. A single APK covers every
+page and check/uncheck what you want blocked. A single APK covers every
 combination.
 
 | Feature | Default | Toggleable | How |
@@ -159,11 +159,26 @@ combination.
 | **Search** | Works |
 | **Notifications** | Works |
 
-## Settings Dialog
+## Settings Page
 
 **Long-press the Home tab** (the house icon at the bottom-left of Instagram's
-main tab bar). A dialog lists the four content toggles; changes persist
-across restarts (stored in SharedPreferences `feurstagram_prefs`).
+main tab bar). A full-screen, scrollable settings page opens with:
+
+- **Blocked surfaces** — toggles for Home Feed, Explore, Reels, Stories,
+  Instants, and Notes.
+- **Landing page** — choose which surface the app jumps to on cold start
+  (Home feed, Search, Direct messages, or Profile).
+- **Permanent lock** and **Done** buttons pinned at the bottom so they stay
+  reachable on any screen size.
+
+Changes persist across restarts (stored in SharedPreferences
+`feurstagram_prefs`).
+
+### Permanent lock
+
+The permanent lock freezes your restrictions for this installation. It only
+prevents *relaxing* them: you can still make settings **stricter** (turn a
+block on), but you cannot turn a block back off without reinstalling.
 
 
 ## Requirements
@@ -223,9 +238,11 @@ Feurstagram/
 │                                  #          authority + package renames into smali
 ├── artifacts/                     # Patched APK output directory
 └── patches/
-    ├── FeurConfig.smali                  # SharedPreferences-backed toggles
+    ├── FeurConfig.smali                  # SharedPreferences-backed toggles + landing page
     ├── FeurHooks.smali                   # Network blocking hooks
-    ├── FeurSettings.smali                # Settings dialog entry point
+    ├── FeurSettings.smali                # Full-screen settings page entry point
+    ├── FeurLandingListener.smali         # Persists the landing-page choice
+    ├── FeurLandingWatcher.smali          # Redirects to the chosen surface on launch
     ├── FeurHomeTabWatcher.smali          # Finds feed_tab in the tab_bar
     ├── FeurInstantsHider.smali           # Hides the DM "Instants" + button
     ├── FeurNotesHider.smali              # Hides the DM Notes tray (cf_hub_recycler_view)
@@ -279,16 +296,22 @@ adb logcat -s "Feurstagram:D"
 Everything is network-based — there is no UI-level tab redirection. Reels,
 Explore, Feed and Stories are all blocked the same way (by refusing their
 backend fetches), and each one is individually toggleable at runtime through
-the settings dialog.
+the settings page.
 
 ### Settings Hook
 The patcher injects a watcher on the main tab bar binder (`LX/4jG`, the class
 that stores the `tab_bar` ViewGroup in field `A0F`). The watcher resolves the
 `feed_tab` resource id dynamically via `Resources.getIdentifier(...)`, grabs
 the Home tab FrameLayout once it's laid out, and installs a long-press
-listener on it. Long-pressing it opens a custom Material 3-styled dark dialog
-with four `SwitchCompat` toggles backed by `SharedPreferences`
-(`feurstagram_prefs`).
+listener on it. Long-pressing it opens a custom Material 3-styled dark
+full-screen page: a scrollable list of `SwitchCompat` content toggles plus a
+landing-page `RadioGroup`, all backed by `SharedPreferences`
+(`feurstagram_prefs`), with the action buttons pinned at the bottom.
+
+The same tab-bar hook also installs a landing-page watcher: on cold start it
+resolves the chosen surface's tab id (`search_tab`, `direct_tab`,
+`profile_tab`) and performs a click once it is laid out, so the app opens
+directly on that surface instead of the Home feed.
 
 ### Network Blocking
 Hooks into `TigonServiceLayer` (a named, non-obfuscated class). Before each
