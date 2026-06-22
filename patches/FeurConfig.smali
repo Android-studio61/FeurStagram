@@ -13,6 +13,14 @@
 .field private static sNeedsRestart:Z
 
 
+# Snapshot of every block_* toggle captured when the settings page opens, used
+# by the permanent lock. The lock only freezes surfaces that were *already*
+# blocked at this snapshot; a surface toggled on by mistake during the current
+# session can still be turned back off until Done restarts the app and bakes the
+# new state into the next snapshot. Null until the first captureBaseline() call.
+.field private static sBaseline:Ljava/util/HashMap;
+
+
 .method public constructor <init>()V
     .locals 0
     invoke-direct {p0}, Ljava/lang/Object;-><init>()V
@@ -134,6 +142,14 @@
     # Hardcore only forbids *relaxing* a block (turning it off). Turning a
     # block on (p1 == true) is always allowed so users can still tighten.
     if-nez p1, :guard_done
+
+    # Turning a block off is allowed only when this surface was already
+    # unblocked at the start of the current settings session: that lets the
+    # user undo a mis-toggle made this session. A surface that was blocked at
+    # session open stays frozen until a reinstall.
+    invoke-static {p0}, Lcom/feurstagram/FeurConfig;->isBaselineBlocked(Ljava/lang/String;)Z
+    move-result v2
+    if-eqz v2, :guard_done
     return-void
 
     :guard_done
@@ -224,6 +240,107 @@
     invoke-static {v0, v1}, Lcom/feurstagram/FeurConfig;->getBlocked(Ljava/lang/String;Z)Z
     move-result v0
     return v0
+.end method
+
+
+.method public static isSuggestedBlocked()Z
+    .locals 2
+
+    const-string v0, "block_suggested"
+    const/4 v1, 0x1
+    invoke-static {v0, v1}, Lcom/feurstagram/FeurConfig;->getBlocked(Ljava/lang/String;Z)Z
+    move-result v0
+    return v0
+.end method
+
+
+# Snapshot the current value of every block_* toggle. Called once when the
+# settings page opens so the permanent lock can tell which surfaces were
+# already blocked (frozen) versus toggled on during this session (still
+# reversible until Done restarts the app).
+.method public static captureBaseline()V
+    .locals 3
+
+    new-instance v0, Ljava/util/HashMap;
+    invoke-direct {v0}, Ljava/util/HashMap;-><init>()V
+    sput-object v0, Lcom/feurstagram/FeurConfig;->sBaseline:Ljava/util/HashMap;
+
+    const-string v1, "block_feed"
+    invoke-static {}, Lcom/feurstagram/FeurConfig;->isFeedBlocked()Z
+    move-result v2
+    invoke-static {v0, v1, v2}, Lcom/feurstagram/FeurConfig;->putBaseline(Ljava/util/HashMap;Ljava/lang/String;Z)V
+
+    const-string v1, "block_explore"
+    invoke-static {}, Lcom/feurstagram/FeurConfig;->isExploreBlocked()Z
+    move-result v2
+    invoke-static {v0, v1, v2}, Lcom/feurstagram/FeurConfig;->putBaseline(Ljava/util/HashMap;Ljava/lang/String;Z)V
+
+    const-string v1, "block_reels"
+    invoke-static {}, Lcom/feurstagram/FeurConfig;->isReelsBlocked()Z
+    move-result v2
+    invoke-static {v0, v1, v2}, Lcom/feurstagram/FeurConfig;->putBaseline(Ljava/util/HashMap;Ljava/lang/String;Z)V
+
+    const-string v1, "block_stories"
+    invoke-static {}, Lcom/feurstagram/FeurConfig;->isStoriesBlocked()Z
+    move-result v2
+    invoke-static {v0, v1, v2}, Lcom/feurstagram/FeurConfig;->putBaseline(Ljava/util/HashMap;Ljava/lang/String;Z)V
+
+    const-string v1, "block_instants"
+    invoke-static {}, Lcom/feurstagram/FeurConfig;->isInstantsBlocked()Z
+    move-result v2
+    invoke-static {v0, v1, v2}, Lcom/feurstagram/FeurConfig;->putBaseline(Ljava/util/HashMap;Ljava/lang/String;Z)V
+
+    const-string v1, "block_notes"
+    invoke-static {}, Lcom/feurstagram/FeurConfig;->isNotesBlocked()Z
+    move-result v2
+    invoke-static {v0, v1, v2}, Lcom/feurstagram/FeurConfig;->putBaseline(Ljava/util/HashMap;Ljava/lang/String;Z)V
+
+    const-string v1, "block_suggested"
+    invoke-static {}, Lcom/feurstagram/FeurConfig;->isSuggestedBlocked()Z
+    move-result v2
+    invoke-static {v0, v1, v2}, Lcom/feurstagram/FeurConfig;->putBaseline(Ljava/util/HashMap;Ljava/lang/String;Z)V
+
+    return-void
+.end method
+
+
+# Helper: box a boolean and store it under key in the given baseline map.
+.method private static putBaseline(Ljava/util/HashMap;Ljava/lang/String;Z)V
+    .locals 1
+
+    invoke-static {p2}, Ljava/lang/Boolean;->valueOf(Z)Ljava/lang/Boolean;
+    move-result-object v0
+    invoke-virtual {p0, p1, v0}, Ljava/util/HashMap;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+    return-void
+.end method
+
+
+# True if the given block_* key was already blocked at the start of the current
+# settings session. When no baseline was captured (calls outside the settings
+# page), falls back to the live persisted value.
+.method public static isBaselineBlocked(Ljava/lang/String;)Z
+    .locals 3
+
+    sget-object v0, Lcom/feurstagram/FeurConfig;->sBaseline:Ljava/util/HashMap;
+    if-nez v0, :cond_have_baseline
+
+    const/4 v1, 0x0
+    invoke-static {p0, v1}, Lcom/feurstagram/FeurConfig;->getBlocked(Ljava/lang/String;Z)Z
+    move-result v1
+    return v1
+
+    :cond_have_baseline
+    invoke-virtual {v0, p0}, Ljava/util/HashMap;->get(Ljava/lang/Object;)Ljava/lang/Object;
+    move-result-object v0
+    if-nez v0, :cond_present
+    const/4 v1, 0x0
+    return v1
+
+    :cond_present
+    check-cast v0, Ljava/lang/Boolean;
+    invoke-virtual {v0}, Ljava/lang/Boolean;->booleanValue()Z
+    move-result v1
+    return v1
 .end method
 
 

@@ -47,7 +47,7 @@
 |--------------------------|-----------------|
 | Direct Messages | Endless Home feed |
 | Stories | Reels surfaces |
-| Search and profiles | Explore recommendations |
+| Search and profiles | Explore and suggested-account recommendations |
 | Notifications | Ads, shopping preloads, and telemetry |
 
 ## Preview
@@ -140,6 +140,7 @@ combination.
 | **Explore** | Blocked | Yes | Network-level blocking |
 | **Reels** | Blocked | Yes | Network-level blocking + Tab hidden |
 | **Stories** | Visible | Yes | Network-level blocking |
+| **Suggested accounts** | Blocked | Yes | Network-level blocking |
 | **Instants (+ button in DMs)** | Blocked | Yes | View visibility hidden |
 | **Notes (text bubbles above DMs)** | Blocked | Yes | View visibility hidden |
 | **Analytics & telemetry** | Blocked | No | Always blocked |
@@ -165,7 +166,7 @@ combination.
 main tab bar). A full-screen, scrollable settings page opens with:
 
 - **Blocked surfaces** — toggles for Home Feed, Explore, Reels, Stories,
-  Instants, and Notes.
+  Suggested accounts, Instants, and Notes.
 - **Landing page** — choose which surface the app jumps to on cold start
   (Home feed, Search, Direct messages, or Profile).
 - **Donate** — opens the project's [GitHub Sponsors](https://github.com/sponsors/jean-voila) page.
@@ -185,6 +186,14 @@ If you open the page and change nothing, Back simply closes it.
 The permanent lock freezes your restrictions for this installation. It only
 prevents *relaxing* them: you can still make settings **stricter** (turn a
 block on), but you cannot turn a block back off without reinstalling.
+
+The freeze is captured per settings session, not the instant you flip a
+switch. When you open the settings page, FeurStagram snapshots which surfaces
+are currently blocked; only those stay frozen. A surface you turn on by
+mistake during a session can still be turned back off **until you tap Done** —
+Done clears the cache and restarts, which bakes the new state in as the next
+snapshot. This means a stray tap on a surface (e.g. Stories) is recoverable
+within the same session instead of forcing a reinstall.
 
 
 ## Requirements
@@ -300,9 +309,9 @@ adb logcat -s "Feurstagram:D"
 ## How It Works
 
 Everything is network-based — there is no UI-level tab redirection. Reels,
-Explore, Feed and Stories are all blocked the same way (by refusing their
-backend fetches), and each one is individually toggleable at runtime through
-the settings page.
+Explore, Feed, Stories and suggested accounts are all blocked the same way (by
+refusing their backend fetches), and each one is individually toggleable at
+runtime through the settings page.
 
 ### Settings Hook
 The patcher injects a watcher on the main tab bar binder (`LX/4jG`, the class
@@ -331,7 +340,8 @@ fail with an `IOException` so the stack unwinds cleanly.
 | `/feed/timeline/` | Home feed posts | Yes |
 | `/feed/reels_tray` | Stories tray | Yes |
 | `/discover/topical_explore` | Explore tab content | Yes |
-| `/clips/home/`, `/clips/discover` | Reels feed + discovery | Yes |
+| `/clips/home/`, `/clips/discover`, `/clips/get_blend_medias/` | Reels feed + discovery + Blend reels | Yes |
+| `/discover/ayml/`, `/discover/sectioned_ayml/`, `/discover/chaining/`, `/discover/recommended_accounts_for_category/`, `/discover/suggested_businesses/`, `/discover/recs_from_friends_suggestions/`, `/discover/recs_from_friends_user_info/`, `/discover/surface_with_su/`, `/discover/fetch_suggestion_details/`, `/discover/account_discovery/`, `/discover/reshare_suggestions/`, `/fbsearch/accounts_recs/`, `/friendships/feed_favorites_suggestions/`, `/friendships/share_to_friends_story_suggested_users/`, `/direct_v2/search_friending_suggestions/`, `/business/discovery/suggest_business/` | Suggested-account recommendations (profile "Suggested for you", stories-tray injected accounts, search null-state recs, post-follow chaining, friend/business suggestions) | Yes |
 | `/logging/` | Client event logging | No |
 | `/async_ads_privacy/` | Ad-related tracking | No |
 | `/async_critical_notices/` | Engagement nudge analytics | No |

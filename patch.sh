@@ -6,7 +6,7 @@
 # Single-APK build: all content blocks (feed, explore, reels, stories) are
 # toggled at runtime by long-pressing the Home tab (bottom-left).
 #
-# Usage: ./patch.sh [--clone [PACKAGE]] <instagram.apk>
+# Usage: ./patch.sh [--clone [PACKAGE]] [--debuggable] <instagram.apk>
 
 set -e
 
@@ -24,6 +24,9 @@ KEY_PASS="${FEURSTAGRAM_KEY_PASS:-$KEYSTORE_PASS}"
 
 CLONE_MODE=0
 CLONE_PACKAGE="com.instagram.android.feurstagram"
+# Dev-only: inject android:debuggable="true" so a test build can be reset via
+# `adb run-as` (see disable_permanent_lock.sh). NEVER ship a debuggable build.
+DEBUGGABLE=0
 
 find_build_tools() {
     local paths=(
@@ -132,6 +135,32 @@ PY
     # AndroidManifest.xml and resources.arsc directly (apply_clone_patch.py).
     apktool d --no-res "$INPUT_APK" -o "$WORK_DIR"
     echo -e "${GREEN}✓ Decompiled${NC}"
+
+    if [ "$DEBUGGABLE" -eq 1 ]; then
+        echo -e "\n${YELLOW}[*] Marking build debuggable (DEV/TEST ONLY)...${NC}"
+        if [ "$CLONE_MODE" -eq 1 ]; then
+            echo -e "${RED}Error: --debuggable is not supported with --clone${NC}"
+            echo "  (clone mode patches the binary manifest; debuggable injection"
+            echo "   only handles the decoded text manifest). Build debuggable"
+            echo "   without --clone for permanent-lock testing."
+            exit 1
+        fi
+        python3 - "$WORK_DIR/AndroidManifest.xml" <<'PY'
+import re, sys
+path = sys.argv[1]
+with open(path, "r", encoding="utf-8") as f:
+    xml = f.read()
+m = re.search(r"<application\b", xml)
+if m is None:
+    sys.stderr.write("AndroidManifest.xml: <application> tag not found\n")
+    sys.exit(1)
+if "android:debuggable" not in xml[m.start():xml.find(">", m.start()) + 1]:
+    xml = xml[:m.end()] + ' android:debuggable="true"' + xml[m.end():]
+    with open(path, "w", encoding="utf-8") as f:
+        f.write(xml)
+PY
+        echo -e "${GREEN}✓ android:debuggable=\"true\" set — do NOT publish this APK${NC}"
+    fi
 
     echo -e "\n${YELLOW}[2/6] Adding FeurStagram classes...${NC}"
     mkdir -p "$WORK_DIR/smali_classes17/com/feurstagram"
@@ -244,6 +273,10 @@ usage() {
     echo "                             build installs side-by-side with a stock"
     echo "                             Instagram. PACKAGE defaults to"
     echo "                             com.instagram.android.feurstagram."
+    echo "  --debuggable               DEV/TEST ONLY. Inject android:debuggable=\"true\""
+    echo "                             so the build can be reset with adb run-as"
+    echo "                             (see disable_permanent_lock.sh). Never publish"
+    echo "                             a debuggable APK. Not compatible with --clone."
     echo ""
     echo "Signing environment variables:"
     echo "  FEURSTAGRAM_KEYSTORE       Path to keystore (default: ./feurstagram.keystore)"
@@ -268,6 +301,9 @@ while [ $# -gt 0 ]; do
                 CLONE_PACKAGE="$2"
                 shift
             fi
+            ;;
+        --debuggable)
+            DEBUGGABLE=1
             ;;
         *)
             if [ -z "$INPUT_APK" ]; then

@@ -200,6 +200,11 @@
 .method private static buildContent(Landroid/content/Context;Landroid/app/Dialog;)Landroid/view/View;
     .locals 9
 
+    # Snapshot the current block_* state so the permanent lock freezes only the
+    # surfaces already blocked now; surfaces toggled on this session stay
+    # reversible until Done restarts the app.
+    invoke-static {}, Lcom/feurstagram/FeurConfig;->captureBaseline()V
+
     invoke-static {}, Lcom/feurstagram/FeurConfig;->isHardcoreMode()Z
     move-result v0
 
@@ -315,6 +320,12 @@
     const-string v6, "Notes"
     const-string v7, "block_notes"
     invoke-static {}, Lcom/feurstagram/FeurConfig;->isNotesBlocked()Z
+    move-result v8
+    invoke-static {p0, v5, v6, v7, v8}, Lcom/feurstagram/FeurSettings;->addRow(Landroid/content/Context;Landroid/widget/LinearLayout;Ljava/lang/String;Ljava/lang/String;Z)V
+
+    const-string v6, "Suggested accounts"
+    const-string v7, "block_suggested"
+    invoke-static {}, Lcom/feurstagram/FeurConfig;->isSuggestedBlocked()Z
     move-result v8
     invoke-static {p0, v5, v6, v7, v8}, Lcom/feurstagram/FeurSettings;->addRow(Landroid/content/Context;Landroid/widget/LinearLayout;Ljava/lang/String;Ljava/lang/String;Z)V
 

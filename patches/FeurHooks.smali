@@ -8,6 +8,8 @@
 #   - /feed/reels_tray        -> isStoriesBlocked()
 #   - /discover/topical_explore -> isExploreBlocked()
 #   - /clips/home/, /clips/discover, /clips/get_blend_medias/ -> isReelsBlocked()
+#   - account/user recommendation endpoints (see shouldBlockSuggested) ->
+#       isSuggestedBlocked()
 #
 # Analytics / commerce endpoints are always blocked regardless of toggles:
 #   - /logging/
@@ -36,6 +38,106 @@
 .method public static logRequest(Ljava/net/URI;)V
     .locals 0
     return-void
+.end method
+
+
+# True when the path is an account/user recommendation surface. These feed the
+# "Suggested for you" rows on profiles, the suggested accounts injected into the
+# stories tray, the search null-state recs, post-follow "discover people"
+# chaining, and friend/business suggestions. Gated on isSuggestedBlocked().
+# Action endpoints (dismiss_*) are deliberately left alone.
+.method private static shouldBlockSuggested(Ljava/lang/String;)Z
+    .locals 2
+
+    if-eqz p0, :cond_false
+
+    const-string v0, "/discover/ayml/"
+    invoke-virtual {p0, v0}, Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z
+    move-result v1
+    if-nez v1, :cond_true
+
+    const-string v0, "/discover/sectioned_ayml/"
+    invoke-virtual {p0, v0}, Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z
+    move-result v1
+    if-nez v1, :cond_true
+
+    const-string v0, "/discover/chaining/"
+    invoke-virtual {p0, v0}, Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z
+    move-result v1
+    if-nez v1, :cond_true
+
+    const-string v0, "/discover/recommended_accounts_for_category/"
+    invoke-virtual {p0, v0}, Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z
+    move-result v1
+    if-nez v1, :cond_true
+
+    const-string v0, "/discover/suggested_businesses/"
+    invoke-virtual {p0, v0}, Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z
+    move-result v1
+    if-nez v1, :cond_true
+
+    const-string v0, "/discover/recs_from_friends_suggestions/"
+    invoke-virtual {p0, v0}, Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z
+    move-result v1
+    if-nez v1, :cond_true
+
+    const-string v0, "/discover/recs_from_friends_user_info/"
+    invoke-virtual {p0, v0}, Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z
+    move-result v1
+    if-nez v1, :cond_true
+
+    const-string v0, "/discover/surface_with_su/"
+    invoke-virtual {p0, v0}, Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z
+    move-result v1
+    if-nez v1, :cond_true
+
+    const-string v0, "/discover/fetch_suggestion_details/"
+    invoke-virtual {p0, v0}, Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z
+    move-result v1
+    if-nez v1, :cond_true
+
+    const-string v0, "/discover/account_discovery/"
+    invoke-virtual {p0, v0}, Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z
+    move-result v1
+    if-nez v1, :cond_true
+
+    const-string v0, "/discover/reshare_suggestions/"
+    invoke-virtual {p0, v0}, Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z
+    move-result v1
+    if-nez v1, :cond_true
+
+    const-string v0, "/fbsearch/accounts_recs/"
+    invoke-virtual {p0, v0}, Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z
+    move-result v1
+    if-nez v1, :cond_true
+
+    const-string v0, "/friendships/feed_favorites_suggestions/"
+    invoke-virtual {p0, v0}, Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z
+    move-result v1
+    if-nez v1, :cond_true
+
+    const-string v0, "/friendships/share_to_friends_story_suggested_users/"
+    invoke-virtual {p0, v0}, Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z
+    move-result v1
+    if-nez v1, :cond_true
+
+    const-string v0, "/direct_v2/search_friending_suggestions/"
+    invoke-virtual {p0, v0}, Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z
+    move-result v1
+    if-nez v1, :cond_true
+
+    const-string v0, "/business/discovery/suggest_business/"
+    invoke-virtual {p0, v0}, Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z
+    move-result v1
+    if-nez v1, :cond_true
+
+    :cond_false
+    const/4 v0, 0x0
+    return v0
+
+    :cond_true
+    const/4 v0, 0x1
+    return v0
 .end method
 
 
@@ -128,6 +230,17 @@
     move-result v2
     if-nez v2, :cond_block
     :skip_reels
+
+    # Suggested accounts (toggleable) - account/user recommendation surfaces:
+    # the "Suggested for you" carousels on profiles, the accounts injected into
+    # the stories tray and search, post-follow chaining, etc.
+    invoke-static {}, Lcom/feurstagram/FeurConfig;->isSuggestedBlocked()Z
+    move-result v2
+    if-eqz v2, :skip_suggested
+    invoke-static {v0}, Lcom/feurstagram/FeurHooks;->shouldBlockSuggested(Ljava/lang/String;)Z
+    move-result v2
+    if-nez v2, :cond_block
+    :skip_suggested
 
     # --- Always-blocked analytics / commerce ---
 

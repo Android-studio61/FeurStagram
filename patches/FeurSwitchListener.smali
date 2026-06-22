@@ -25,8 +25,11 @@
     iget-object v0, p0, Lcom/feurstagram/FeurSwitchListener;->mKey:Ljava/lang/String;
 
     # Under the permanent lock, a block_* toggle may be tightened (turned on)
-    # but never relaxed (turned off). If the user tries to switch one off,
-    # snap it back on and skip persisting so the UI stays truthful.
+    # but never relaxed (turned off) once it was blocked at session open. A
+    # surface that was unblocked when the page opened can still be switched off
+    # (undoing a mis-toggle made this session). If the user tries to relax a
+    # frozen surface, snap it back on and skip persisting so the UI stays
+    # truthful.
     invoke-static {}, Lcom/feurstagram/FeurConfig;->isHardcoreMode()Z
     move-result v1
     if-eqz v1, :persist
@@ -34,6 +37,9 @@
     if-eqz v0, :persist
     const-string v1, "block_"
     invoke-virtual {v0, v1}, Ljava/lang/String;->startsWith(Ljava/lang/String;)Z
+    move-result v2
+    if-eqz v2, :persist
+    invoke-static {v0}, Lcom/feurstagram/FeurConfig;->isBaselineBlocked(Ljava/lang/String;)Z
     move-result v2
     if-eqz v2, :persist
 
