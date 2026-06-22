@@ -7,7 +7,7 @@
 #   - /feed/timeline/         -> isFeedBlocked()
 #   - /feed/reels_tray        -> isStoriesBlocked()
 #   - /discover/topical_explore -> isExploreBlocked()
-#   - /clips/home/, /clips/discover -> isReelsBlocked()
+#   - /clips/home/, /clips/discover, /clips/get_blend_medias/ -> isReelsBlocked()
 #
 # Analytics / commerce endpoints are always blocked regardless of toggles:
 #   - /logging/
@@ -117,6 +117,13 @@
     move-result v2
     if-nez v2, :cond_block
     const-string v1, "/clips/discover"
+    invoke-virtual {v0, v1}, Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z
+    move-result v2
+    if-nez v2, :cond_block
+    # Reels served inside a Blend (friends/group blends) - issue #2.
+    # Blend reels are fetched from /api/v1/clips/get_blend_medias/ with a
+    # blend_id param, a separate surface from the main /clips/home feed.
+    const-string v1, "/clips/get_blend_medias/"
     invoke-virtual {v0, v1}, Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z
     move-result v2
     if-nez v2, :cond_block
