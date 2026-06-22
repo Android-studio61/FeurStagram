@@ -10,6 +10,7 @@
 #   - /clips/home/, /clips/discover, /clips/get_blend_medias/ -> isReelsBlocked()
 #   - account/user recommendation endpoints (see shouldBlockSuggested) ->
 #       isSuggestedBlocked()
+#   - ad-delivery endpoints (see shouldBlockAds) -> isAdsBlocked()
 #
 # Analytics / commerce endpoints are always blocked regardless of toggles:
 #   - /logging/
@@ -167,6 +168,86 @@
 .end method
 
 
+# True when the path is an ad-delivery surface: the sponsored content that
+# Instagram injects into the feed, stories, profile, DMs, Explore chaining and
+# commerce. Gated on isAdsBlocked(). "/api/v1/ads/" covers every ads/* request
+# (async_ads, comment_sheet_ads, pbia_info, intent_aware_ads, ...); the rest are
+# ad units served from non-ads/ surfaces.
+.method private static shouldBlockAds(Ljava/lang/String;)Z
+    .locals 2
+
+    if-eqz p0, :cond_false
+
+    const-string v0, "/api/v1/ads/"
+    invoke-virtual {p0, v0}, Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z
+    move-result v1
+    if-nez v1, :cond_true
+
+    const-string v0, "/feed/async_ads_ranking/"
+    invoke-virtual {p0, v0}, Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z
+    move-result v1
+    if-nez v1, :cond_true
+
+    const-string v0, "/feed/shop_everything_feed_of_ads"
+    invoke-virtual {p0, v0}, Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z
+    move-result v1
+    if-nez v1, :cond_true
+
+    const-string v0, "/feed/user_interests_contextual_feed_of_ads/"
+    invoke-virtual {p0, v0}, Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z
+    move-result v1
+    if-nez v1, :cond_true
+
+    const-string v0, "/discover/chaining_experience_contextual_ads/"
+    invoke-virtual {p0, v0}, Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z
+    move-result v1
+    if-nez v1, :cond_true
+
+    const-string v0, "/discover/chaining_experience_notification_ads/"
+    invoke-virtual {p0, v0}, Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z
+    move-result v1
+    if-nez v1, :cond_true
+
+    const-string v0, "/direct_v2/ads_for_ctd_ads_thread_view/"
+    invoke-virtual {p0, v0}, Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z
+    move-result v1
+    if-nez v1, :cond_true
+
+    const-string v0, "/direct_v2/should_show_ad_responses_tab/"
+    invoke-virtual {p0, v0}, Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z
+    move-result v1
+    if-nez v1, :cond_true
+
+    const-string v0, "/profile_ads/get_profile_ads/"
+    invoke-virtual {p0, v0}, Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z
+    move-result v1
+    if-nez v1, :cond_true
+
+    const-string v0, "/stories/stories_high_intent_discovery_ads/"
+    invoke-virtual {p0, v0}, Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z
+    move-result v1
+    if-nez v1, :cond_true
+
+    const-string v0, "/stories/stories_intent_aware_ads/"
+    invoke-virtual {p0, v0}, Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z
+    move-result v1
+    if-nez v1, :cond_true
+
+    const-string v0, "/commerce/product_collections/ads_collection_page/"
+    invoke-virtual {p0, v0}, Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z
+    move-result v1
+    if-nez v1, :cond_true
+
+    :cond_false
+    const/4 v0, 0x0
+    return v0
+
+    :cond_true
+    const/4 v0, 0x1
+    return v0
+.end method
+
+
 # Main hook: Throws IOException if request should be blocked.
 # Called from TigonServiceLayer before each network request.
 .method public static throwIfBlocked(Ljava/net/URI;)V
@@ -242,12 +323,17 @@
     if-nez v2, :cond_block
     :skip_suggested
 
-    # --- Always-blocked analytics / commerce ---
-
-    const-string v1, "/api/v1/ads/"
-    invoke-virtual {v0, v1}, Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z
+    # Ads (toggleable) - sponsored content injected into the feed, stories,
+    # profile, DMs, Explore chaining and commerce surfaces. See shouldBlockAds.
+    invoke-static {}, Lcom/feurstagram/FeurConfig;->isAdsBlocked()Z
+    move-result v2
+    if-eqz v2, :skip_ads
+    invoke-static {v0}, Lcom/feurstagram/FeurHooks;->shouldBlockAds(Ljava/lang/String;)Z
     move-result v2
     if-nez v2, :cond_block
+    :skip_ads
+
+    # --- Always-blocked analytics / commerce ---
 
     const-string v1, "/feed/injected_reels_media/"
     invoke-virtual {v0, v1}, Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z

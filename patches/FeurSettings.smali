@@ -335,6 +335,12 @@
     move-result v8
     invoke-static {p0, v5, v6, v7, v8}, Lcom/feurstagram/FeurSettings;->addRow(Landroid/content/Context;Landroid/widget/LinearLayout;Ljava/lang/String;Ljava/lang/String;Z)V
 
+    const-string v6, "Ads"
+    const-string v7, "block_ads"
+    invoke-static {}, Lcom/feurstagram/FeurConfig;->isAdsBlocked()Z
+    move-result v8
+    invoke-static {p0, v5, v6, v7, v8}, Lcom/feurstagram/FeurSettings;->addRow(Landroid/content/Context;Landroid/widget/LinearLayout;Ljava/lang/String;Ljava/lang/String;Z)V
+
     # ---- LANDING PAGE section ----
     const-string v5, "LANDING PAGE"
     invoke-static {p0, v4, v5}, Lcom/feurstagram/FeurSettings;->addSectionHeader(Landroid/content/Context;Landroid/widget/LinearLayout;Ljava/lang/String;)V
@@ -678,12 +684,19 @@
 
     new-instance v9, Landroid/widget/TextView;
     invoke-direct {v9, p0}, Landroid/widget/TextView;-><init>(Landroid/content/Context;)V
-    # Subtitle depends on the key: the update toggle has its own description.
+    # Subtitle depends on the key: the update and ads toggles have their own.
     const-string v10, "auto_update"
     invoke-virtual {p3, v10}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
     move-result v0
-    if-eqz v0, :cond_default_sub
+    if-eqz v0, :cond_not_update_sub
     const-string v10, "Check GitHub for a new version on launch."
+    goto :cond_sub_set
+    :cond_not_update_sub
+    const-string v10, "block_ads"
+    invoke-virtual {p3, v10}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+    move-result v0
+    if-eqz v0, :cond_default_sub
+    const-string v10, "Block sponsored ads across Instagram."
     goto :cond_sub_set
     :cond_default_sub
     const-string v10, "Hide this surface in Instagram."

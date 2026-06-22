@@ -266,6 +266,17 @@
 .end method
 
 
+.method public static isAdsBlocked()Z
+    .locals 2
+
+    const-string v0, "block_ads"
+    const/4 v1, 0x1
+    invoke-static {v0, v1}, Lcom/feurstagram/FeurConfig;->getBlocked(Ljava/lang/String;Z)Z
+    move-result v0
+    return v0
+.end method
+
+
 # Snapshot the current value of every block_* toggle. Called once when the
 # settings page opens so the permanent lock can tell which surfaces were
 # already blocked (frozen) versus toggled on during this session (still
@@ -309,6 +320,11 @@
 
     const-string v1, "block_suggested"
     invoke-static {}, Lcom/feurstagram/FeurConfig;->isSuggestedBlocked()Z
+    move-result v2
+    invoke-static {v0, v1, v2}, Lcom/feurstagram/FeurConfig;->putBaseline(Ljava/util/HashMap;Ljava/lang/String;Z)V
+
+    const-string v1, "block_ads"
+    invoke-static {}, Lcom/feurstagram/FeurConfig;->isAdsBlocked()Z
     move-result v2
     invoke-static {v0, v1, v2}, Lcom/feurstagram/FeurConfig;->putBaseline(Ljava/util/HashMap;Ljava/lang/String;Z)V
 

@@ -148,9 +148,9 @@ combination.
 | **Suggested accounts** | Blocked | Yes | Network-level blocking |
 | **Instants (+ button in DMs)** | Blocked | Yes | View visibility hidden |
 | **Notes (text bubbles above DMs)** | Blocked | Yes | View visibility hidden |
+| **Ads** | Blocked | Yes | Network-level blocking |
 | **Analytics & telemetry** | Blocked | No | Always blocked |
 | **Shopping / commerce preloads** | Blocked | No | Always blocked |
-| **Ads** | Blocked | No | Always blocked |
 
 
 
@@ -171,7 +171,7 @@ combination.
 main tab bar). A full-screen, scrollable settings page opens with:
 
 - **Blocked surfaces** — toggles for Home Feed, Explore, Reels, Stories,
-  Suggested accounts, Instants, and Notes.
+  Suggested accounts, Ads, Instants, and Notes.
 - **Landing page** — choose which surface the app jumps to on cold start
   (Home feed, Search, Direct messages, or Profile).
 - **Updates** — *Automatic update check* (on by default): on launch,
@@ -353,6 +353,7 @@ fail with an `IOException` so the stack unwinds cleanly.
 | `/discover/topical_explore` | Explore tab content | Yes |
 | `/clips/home/`, `/clips/discover`, `/clips/get_blend_medias/` | Reels feed + discovery + Blend reels | Yes |
 | `/discover/ayml/`, `/discover/sectioned_ayml/`, `/discover/chaining/`, `/discover/recommended_accounts_for_category/`, `/discover/suggested_businesses/`, `/discover/recs_from_friends_suggestions/`, `/discover/recs_from_friends_user_info/`, `/discover/surface_with_su/`, `/discover/fetch_suggestion_details/`, `/discover/account_discovery/`, `/discover/reshare_suggestions/`, `/fbsearch/accounts_recs/`, `/friendships/feed_favorites_suggestions/`, `/friendships/share_to_friends_story_suggested_users/`, `/direct_v2/search_friending_suggestions/`, `/business/discovery/suggest_business/` | Suggested-account recommendations (profile "Suggested for you", stories-tray injected accounts, search null-state recs, post-follow chaining, friend/business suggestions) | Yes |
+| `/api/v1/ads/` (all `ads/*`), `/feed/async_ads_ranking/`, `/feed/shop_everything_feed_of_ads*`, `/feed/user_interests_contextual_feed_of_ads/`, `/discover/chaining_experience_contextual_ads/`, `/discover/chaining_experience_notification_ads/`, `/direct_v2/ads_for_ctd_ads_thread_view/`, `/direct_v2/should_show_ad_responses_tab/`, `/profile_ads/get_profile_ads/`, `/stories/stories_high_intent_discovery_ads/`, `/stories/stories_intent_aware_ads/`, `/commerce/product_collections/ads_collection_page/` | Sponsored ads injected into the feed, stories, profile, DMs, Explore chaining and commerce | Yes |
 | `/logging/` | Client event logging | No |
 | `/async_ads_privacy/` | Ad-related tracking | No |
 | `/async_critical_notices/` | Engagement nudge analytics | No |
