@@ -39,5 +39,6 @@
 
     :set
     invoke-static {v0}, Lcom/feurstagram/FeurConfig;->setLandingPage(Ljava/lang/String;)V
+    invoke-static {}, Lcom/feurstagram/FeurConfig;->setNeedsRestart()V
     return-void
 .end method

@@ -141,6 +141,13 @@
     move-result-object v1
     invoke-virtual {v0, v1}, Landroid/app/Dialog;->setContentView(Landroid/view/View;)V
 
+    # Intercept Back (via cancel, so it also catches the predictive-back
+    # gesture) so a pending change forces a restart instead of dropping the
+    # user back into the stale app.
+    new-instance v1, Lcom/feurstagram/FeurSettingsCancelListener;
+    invoke-direct {v1, p0}, Lcom/feurstagram/FeurSettingsCancelListener;-><init>(Landroid/content/Context;)V
+    invoke-virtual {v0, v1}, Landroid/app/Dialog;->setOnCancelListener(Landroid/content/DialogInterface$OnCancelListener;)V
+
     invoke-virtual {v0}, Landroid/app/Dialog;->getWindow()Landroid/view/Window;
     move-result-object v2
     if-eqz v2, :cond_show
@@ -318,6 +325,30 @@
     invoke-static {p0}, Lcom/feurstagram/FeurSettings;->buildLandingCard(Landroid/content/Context;)Landroid/view/View;
     move-result-object v5
     invoke-virtual {v4, v5}, Landroid/widget/LinearLayout;->addView(Landroid/view/View;)V
+
+    # ---- Donate button (opens GitHub Sponsors) ----
+    const-string v6, "#EA4AAA"
+    invoke-static {v6}, Landroid/graphics/Color;->parseColor(Ljava/lang/String;)I
+    move-result v6                 # GitHub Sponsors pink
+    const-string v7, "Donate"
+    const/4 v8, -0x1               # white text
+    const/4 v5, 0x1
+    invoke-static {p0, v7, v6, v8, v5}, Lcom/feurstagram/FeurSettings;->makeButton(Landroid/content/Context;Ljava/lang/String;IIZ)Landroid/widget/Button;
+    move-result-object v5
+    new-instance v6, Lcom/feurstagram/FeurDonateClickListener;
+    invoke-direct {v6, p0}, Lcom/feurstagram/FeurDonateClickListener;-><init>(Landroid/content/Context;)V
+    invoke-virtual {v5, v6}, Landroid/widget/Button;->setOnClickListener(Landroid/view/View$OnClickListener;)V
+
+    new-instance v6, Landroid/widget/LinearLayout$LayoutParams;
+    const/4 v7, -0x1
+    const/4 v8, -0x2
+    invoke-direct {v6, v7, v8}, Landroid/widget/LinearLayout$LayoutParams;-><init>(II)V
+    const/high16 v7, 0x41a00000    # 20.0f top margin
+    invoke-static {p0, v7}, Lcom/feurstagram/FeurSettings;->dp(Landroid/content/Context;F)I
+    move-result v7
+    const/4 v8, 0x0
+    invoke-virtual {v6, v8, v7, v8, v8}, Landroid/widget/LinearLayout$LayoutParams;->setMargins(IIII)V
+    invoke-virtual {v4, v5, v6}, Landroid/widget/LinearLayout;->addView(Landroid/view/View;Landroid/view/ViewGroup$LayoutParams;)V
 
     # column -> scroll -> root (scroll takes the remaining height)
     invoke-virtual {v3, v4}, Landroid/widget/ScrollView;->addView(Landroid/view/View;)V

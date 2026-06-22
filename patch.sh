@@ -142,6 +142,8 @@ PY
     cp "$PATCHES_DIR/FeurLandingListener.smali" "$WORK_DIR/smali_classes17/com/feurstagram/"
     cp "$PATCHES_DIR/FeurLandingWatcher.smali" "$WORK_DIR/smali_classes17/com/feurstagram/"
     cp "$PATCHES_DIR/FeurSettingsLongClick.smali" "$WORK_DIR/smali_classes17/com/feurstagram/"
+    cp "$PATCHES_DIR/FeurSettingsCancelListener.smali" "$WORK_DIR/smali_classes17/com/feurstagram/"
+    cp "$PATCHES_DIR/FeurDonateClickListener.smali" "$WORK_DIR/smali_classes17/com/feurstagram/"
     cp "$PATCHES_DIR/FeurHomeTabWatcher.smali" "$WORK_DIR/smali_classes17/com/feurstagram/"
     cp "$PATCHES_DIR/FeurInstantsHider.smali" "$WORK_DIR/smali_classes17/com/feurstagram/"
     cp "$PATCHES_DIR/FeurNotesHider.smali" "$WORK_DIR/smali_classes17/com/feurstagram/"

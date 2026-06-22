@@ -43,5 +43,6 @@
 
     :persist
     invoke-static {v0, p2}, Lcom/feurstagram/FeurConfig;->setBlocked(Ljava/lang/String;Z)V
+    invoke-static {}, Lcom/feurstagram/FeurConfig;->setNeedsRestart()V
     return-void
 .end method

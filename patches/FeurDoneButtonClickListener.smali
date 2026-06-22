@@ -34,6 +34,15 @@
     return-void
 
     :cond_has_ctx
+    # If a setting was changed, restart straight away. There is then no
+    # confirmation dialog to cancel, so no way back into the stale app.
+    invoke-static {}, Lcom/feurstagram/FeurConfig;->isRestartPending()Z
+    move-result v2
+    if-eqz v2, :cond_show_confirm
+    invoke-static {v1}, Lcom/feurstagram/FeurCacheCleaner;->clearAndRestart(Landroid/content/Context;)V
+    return-void
+
+    :cond_show_confirm
     :try_start_0
     new-instance v2, Landroid/app/Dialog;
     invoke-direct {v2, v1}, Landroid/app/Dialog;-><init>(Landroid/content/Context;)V

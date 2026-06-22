@@ -7,6 +7,12 @@
 # All four default to true (blocked) on first launch.
 
 
+# Set once any setting is changed in this process. While true, leaving the
+# settings page (Back or Done) forces a clean restart instead of returning to
+# the now-stale app. Reset implicitly every process (a restart clears it).
+.field private static sNeedsRestart:Z
+
+
 .method public constructor <init>()V
     .locals 0
     invoke-direct {p0}, Ljava/lang/Object;-><init>()V
@@ -244,6 +250,25 @@
     invoke-interface {v0, v1, v2}, Landroid/content/SharedPreferences;->getString(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
     move-result-object v0
     return-object v0
+.end method
+
+
+# Mark that a setting changed and a restart is required to apply it cleanly.
+.method public static setNeedsRestart()V
+    .locals 1
+
+    const/4 v0, 0x1
+    sput-boolean v0, Lcom/feurstagram/FeurConfig;->sNeedsRestart:Z
+    return-void
+.end method
+
+
+# True if a setting was changed this process and a restart is still pending.
+.method public static isRestartPending()Z
+    .locals 1
+
+    sget-boolean v0, Lcom/feurstagram/FeurConfig;->sNeedsRestart:Z
+    return v0
 .end method
 
 

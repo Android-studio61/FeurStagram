@@ -168,11 +168,17 @@ main tab bar). A full-screen, scrollable settings page opens with:
   Instants, and Notes.
 - **Landing page** — choose which surface the app jumps to on cold start
   (Home feed, Search, Direct messages, or Profile).
+- **Donate** — opens the project's [GitHub Sponsors](https://github.com/sponsors/jean-voila) page.
 - **Permanent lock** and **Done** buttons pinned at the bottom so they stay
   reachable on any screen size.
 
 Changes persist across restarts (stored in SharedPreferences
 `feurstagram_prefs`).
+
+Once you change any setting, the page can only be left by restarting: both
+**Done** and **Back** clear the cache and relaunch, so a changed block can
+never leave the app in a half-applied state with stale content still loaded.
+If you open the page and change nothing, Back simply closes it.
 
 ### Permanent lock
 
