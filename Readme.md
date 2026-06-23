@@ -20,6 +20,9 @@
 <p align="center">
   <a href="https://github.com/sponsors/jean-voila"><img alt="Support on GitHub Sponsors" src="https://img.shields.io/badge/GitHub%20Sponsors-Support%20the%20Project-EA4AAA?style=for-the-badge&logo=githubsponsors&logoColor=white"></a>
 </p>
+<p align="center">
+  <img src="https://komarev.com/ghpvc/?username=jean-voila-feurstagram&label=Views&color=gray&style=flat" alt="Views">
+</p>
 
 <p align="center">
   <a href="https://github.com/jean-voila/FeurStagram/releases/latest"><strong>Download APK</strong></a>
