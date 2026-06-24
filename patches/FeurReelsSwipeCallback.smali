@@ -1,5 +1,5 @@
 .class public Lcom/feurstagram/FeurReelsSwipeCallback;
-.super LX/02Gi;
+.super LX/2Vx;
 
 # OnPageChangeCallback for Instagram's main bottom-tab ViewPager2 that
 # bounces the user past the Reels page whenever the Reels block is on.
@@ -13,15 +13,15 @@
 # a right-to-left swipe). Falls back to forward when direction can't be
 # inferred (e.g. fresh process start landing on Reels).
 #
-# Obfuscation map for this Instagram build (434.0.0.44.74):
-#   LX/02Gi                                     = androidx.viewpager2.widget.ViewPager2$OnPageChangeCallback
-#   LX/02Gi->A01(I)V                            = onPageScrollStateChanged(int)
-#   LX/02Gi->A02(I)V                            = onPageSelected(int)        <- overridden
-#   LX/02Gi->A03(IFI)V                          = onPageScrolled(int, float, int)
-#   ViewPager2->A06(IZ)V                       = setCurrentItem(int, boolean smoothScroll)
-#   ViewPager2->A08(LX/02Gi;)V                  = registerOnPageChangeCallback(callback)
-#   ViewPager2->getAdapter()LX/02Fd;            = RecyclerView.Adapter (obfuscated return type)
-#   LX/02Fd->getItemCount()I                    = adapter item count
+# Obfuscation map for this Instagram build (435.0.0.37.76):
+#   LX/2Vx                                      = androidx.viewpager2.widget.ViewPager2$OnPageChangeCallback
+#   LX/2Vx->A01(I)V                             = onPageScrollStateChanged(int)
+#   LX/2Vx->A02(I)V                             = onPageSelected(int)        <- overridden
+#   LX/2Vx->A03(IFI)V                           = onPageScrolled(int, float, int)
+#   ViewPager2->A06(IZ)V                        = setCurrentItem(int, boolean smoothScroll)
+#   ViewPager2->A08(LX/2Vx;)V                   = registerOnPageChangeCallback(callback)
+#   ViewPager2->getAdapter()LX/2Va;             = RecyclerView.Adapter (obfuscated return type)
+#   LX/2Va->getItemCount()I                     = adapter item count
 #
 # These LX/ names are reshuffled every Instagram release. To re-derive them:
 #   ViewPager2.A08/A09(LX/..;)V  -> the OnPageChangeCallback param type (.super)
@@ -205,7 +205,7 @@
     :have_idx
     new-instance v3, Lcom/feurstagram/FeurReelsSwipeCallback;
     invoke-direct {v3, v1, v2}, Lcom/feurstagram/FeurReelsSwipeCallback;-><init>(Landroidx/viewpager2/widget/ViewPager2;I)V
-    invoke-virtual {v1, v3}, Landroidx/viewpager2/widget/ViewPager2;->A08(LX/02Gi;)V
+    invoke-virtual {v1, v3}, Landroidx/viewpager2/widget/ViewPager2;->A08(LX/2Vx;)V
 
     const-string v0, "FeurReelsSwipeCallback installed"
     invoke-static {v0}, Lcom/feurstagram/FeurHooks;->log(Ljava/lang/String;)V
@@ -255,10 +255,10 @@
 
     :check_upper
     iget-object v4, p0, Lcom/feurstagram/FeurReelsSwipeCallback;->mPager:Landroidx/viewpager2/widget/ViewPager2;
-    invoke-virtual {v4}, Landroidx/viewpager2/widget/ViewPager2;->getAdapter()LX/02Fd;
+    invoke-virtual {v4}, Landroidx/viewpager2/widget/ViewPager2;->getAdapter()LX/2Va;
     move-result-object v4
     if-eqz v4, :do_set
-    invoke-virtual {v4}, LX/02Fd;->getItemCount()I
+    invoke-virtual {v4}, LX/2Va;->getItemCount()I
     move-result v4
     if-lt v3, v4, :do_set
     add-int/lit8 v3, v4, -0x1
