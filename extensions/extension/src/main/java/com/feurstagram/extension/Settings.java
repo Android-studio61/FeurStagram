@@ -150,6 +150,11 @@ public final class Settings {
         addRow(context, surfaces, "Suggested accounts", "block_suggested", Config.isSuggestedBlocked());
         addRow(context, surfaces, "Ads", "block_ads", Config.isAdsBlocked());
 
+        addSectionHeader(context, column, "FEED");
+        LinearLayout feed = makeSectionCard(context);
+        column.addView(feed);
+        addRow(context, feed, "Following feed only", "limit_following_feed", Config.isFollowingFeedOnly());
+
         addSectionHeader(context, column, "LANDING PAGE");
         column.addView(buildLandingCard(context));
 
@@ -416,6 +421,8 @@ public final class Settings {
             sub.setText("Check GitHub for a new version on launch.");
         } else if (key.equals("block_ads")) {
             sub.setText("Block sponsored ads across Instagram.");
+        } else if (key.equals("limit_following_feed")) {
+            sub.setText("Show only accounts you follow (needs the feed unblocked).");
         } else {
             sub.setText("Hide this surface in Instagram.");
         }

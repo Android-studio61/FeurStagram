@@ -145,15 +145,20 @@ combination.
 | Feature | Default | Toggleable | How |
 |---------|---------|------------|-----|
 | **Home Feed** | Blocked | Yes | Network-level blocking |
+| **Following feed only** | Off | Yes | Feed-request header rewrite |
 | **Explore** | Blocked | Yes | Network-level blocking |
 | **Reels** | Blocked | Yes | Network-level blocking + Tab hidden |
 | **Stories** | Visible | Yes | Network-level blocking |
-| **Suggested accounts** | Blocked | Yes | Network-level blocking |
+| **Suggested accounts** | Blocked | Yes | Network-level + feed-parse blocking |
 | **Instants (+ button in DMs)** | Blocked | Yes | View visibility hidden |
 | **Notes (text bubbles above DMs)** | Blocked | Yes | View visibility hidden |
-| **Ads** | Blocked | Yes | Network-level blocking |
+| **Ads** | Blocked | Yes | Network-level + feed-parse blocking |
 | **Analytics & telemetry** | Blocked | No | Always blocked |
 | **Shopping / commerce preloads** | Blocked | No | Always blocked |
+
+**Following feed only** is a softer alternative to blocking the Home Feed
+entirely: leave the feed unblocked and turn this on to get a chronological feed
+of just the accounts you follow, with the recommended/ranked posts dropped.
 
 
 
@@ -175,6 +180,9 @@ main tab bar). A full-screen, scrollable settings page opens with:
 
 - **Blocked surfaces** — toggles for Home Feed, Explore, Reels, Stories,
   Suggested accounts, Ads, Instants, and Notes.
+- **Feed** — *Following feed only*: restrict the Home Feed to accounts you
+  follow (chronological), instead of the recommended feed. Has effect only when
+  the Home Feed is left unblocked.
 - **Landing page** — choose which surface the app jumps to on cold start
   (Home feed, Search, Direct messages, or Profile).
 - **Updates** — *Automatic update check* (on by default): on launch,
@@ -239,12 +247,13 @@ Feurstagram/
 ├── build.sh                      # Build the bundle and apply it to an APK
 ├── patches/                      # Patches (Kotlin): where to inject, by fingerprint
 │   └── src/main/kotlin/com/feurstagram/patches/
-│       ├── network/              # Network content blocking (TigonServiceLayer)
+│       ├── network/              # Network blocking + feed-item filter + following-feed
 │       ├── settings/             # Long-press settings entry point (tab bar)
 │       └── clone/                # Side-by-side package/label rename
 └── extensions/                   # Runtime code (Java), compiled and merged in
     └── .../com/feurstagram/extension/
-        ├── Block.java            # URI blocking rules
+        ├── Block.java            # URI blocking rules + feed-item type filter
+        ├── LimitFeed.java        # Following-feed header rewrite
         ├── Config.java           # SharedPreferences toggles + permanent lock
         ├── Settings.java         # Settings dialog
         ├── Hiders.java           # Reels tab / Notes / Instants hiders + landing redirect
@@ -286,6 +295,24 @@ redirect.
 A fingerprint matches `TigonServiceLayer.startRequest` (a named class) and
 injects a call on the request URI. Blocked calls throw an `IOException`, so the
 surface fails to load and stays empty.
+
+### Feed Item Filtering
+Network blocking can't touch ads and "suggested" units that Instagram injects
+**inline** into the Home Feed payload — they arrive inside the normal
+`/feed/timeline/` response, not on a separate URL. A second fingerprint matches
+the feed-item JSON deserialiser (by the stable wire-format type tokens like
+`clips_netego` and the `parseFromJson` method name) and rewrites a blocked
+unit's type token to an invalid one. Instagram's own parser then routes it to
+its "unknown FeedItem type" branch and drops it — no crash. Ad/promo units are
+gated on the **Ads** toggle, suggested/netego units on the **Suggested
+accounts** toggle.
+
+### Following Feed Only
+A fingerprint matches the main-feed request class (by its debug-string shape)
+and rewrites the request's `pagination_source` header from the recommended feed
+to `following`, so the Home Feed returns only accounts you follow. The header
+field is obfuscated, so it is resolved dynamically each build rather than
+hardcoded. Gated on the **Following feed only** toggle.
 
 #### Blocked network paths
 

@@ -35,6 +35,38 @@ public final class Block {
             "/business/discovery/suggest_business/",
     };
 
+    /**
+     * Feed-item JSON type tokens for ad/promo units injected inline into the
+     * timeline payload. Gated on the Ads toggle. {@code media_or_ad} (regular
+     * posts) is deliberately absent — dropping it would empty the whole feed.
+     */
+    private static final String[] AD_FEED_UNITS = {
+            "ad4ad",
+            "intent_aware_ad_pivot",
+            "stand_alone_multi_ad_pivot",
+    };
+
+    /**
+     * Feed-item JSON type tokens for suggested / "netego" units injected inline
+     * into the timeline payload. Gated on the Suggested toggle.
+     */
+    private static final String[] SUGGESTED_FEED_UNITS = {
+            "clips_netego",
+            "stories_netego",
+            "bloks_netego",
+            "in_feed_survey",
+            "suggested_users",
+            "suggested_top_accounts",
+            "suggested_igd_channels",
+    };
+
+    /**
+     * Garbage type token returned for a blocked unit. It matches no real case in
+     * Instagram's feed-item parser, so the unit falls through to the parser's
+     * "unknown FeedItem type" branch and is dropped without a crash.
+     */
+    private static final String INVALID_FEED_TYPE = "feurstagram_blocked";
+
     /** Ad-delivery surfaces injected into feed, stories, profile, DMs, explore, commerce. */
     private static final String[] ADS = {
             "/api/v1/ads/",
@@ -83,6 +115,25 @@ public final class Block {
                 || path.contains("/api/v1/sellable_items/")) {
             throw blocked();
         }
+    }
+
+    /**
+     * Feed-item parse hook: invoked from Instagram's feed-item deserialiser with
+     * each item's JSON type token. Returns an invalid token when that unit should
+     * be hidden (so the parser skips it), or the token unchanged otherwise.
+     */
+    public static String replaceFeedItemType(String key) {
+        if (key == null) return null;
+        if (Config.isAdsBlocked() && equalsAny(key, AD_FEED_UNITS)) return INVALID_FEED_TYPE;
+        if (Config.isSuggestedBlocked() && equalsAny(key, SUGGESTED_FEED_UNITS)) return INVALID_FEED_TYPE;
+        return key;
+    }
+
+    private static boolean equalsAny(String value, String[] options) {
+        for (String option : options) {
+            if (option.equals(value)) return true;
+        }
+        return false;
     }
 
     private static boolean isMediaSeen(String path) {

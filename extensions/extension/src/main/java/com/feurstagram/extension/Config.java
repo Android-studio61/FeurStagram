@@ -87,6 +87,15 @@ public final class Config {
         return getBlocked("auto_update", true);
     }
 
+    /**
+     * Whether the home feed is restricted to accounts you follow (chronological
+     * "Following" feed) instead of the recommended feed. Off by default. Not a
+     * block_* surface, so the permanent lock never freezes it.
+     */
+    public static boolean isFollowingFeedOnly() {
+        return getBlocked("limit_following_feed", false);
+    }
+
     public static boolean isFeedBlocked()      { return getBlocked("block_feed", true); }
     public static boolean isExploreBlocked()   { return getBlocked("block_explore", true); }
     public static boolean isReelsBlocked()     { return getBlocked("block_reels", true); }
