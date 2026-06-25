@@ -1,18 +1,18 @@
 <div align="center">
-  <img src="docs/app_icon.png" alt="FeurStagram logo" width="128" height="128">
-  <h1>FeurStagram</h1>
+  <img src="docs/app_icon.png" alt="Feurstagram logo" width="128" height="128">
+  <h1>Feurstagram</h1>
   <p><strong>Instagram, without the addictive surfaces.</strong></p>
   <p>
-    FeurStagram is an open-source Android patch for Instagram that removes
+    Feurstagram is an open-source Android patch for Instagram that removes
     the feed, Explore, Reels, ads, telemetry, and other distracting features
     while keeping DMs, stories, search, notifications, and profiles.
   </p>
 </div>
 
 <p align="center">
-  <a href="https://github.com/jean-voila/FeurStagram/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/jean-voila/FeurStagram?style=flat-square&label=release&color=10a37f"></a>
-  <a href="https://github.com/jean-voila/FeurStagram/releases/latest"><img alt="Download APK" src="https://img.shields.io/badge/download-APK-10a37f?style=flat-square"></a>
-  <a href="LICENSE"><img alt="License" src="https://img.shields.io/github/license/jean-voila/FeurStagram?style=flat-square&color=6b7280"></a>
+  <a href="https://github.com/jean-voila/Feurstagram/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/jean-voila/Feurstagram?style=flat-square&label=release&color=10a37f"></a>
+  <a href="https://github.com/jean-voila/Feurstagram/releases/latest"><img alt="Download APK" src="https://img.shields.io/badge/download-APK-10a37f?style=flat-square"></a>
+  <a href="LICENSE"><img alt="License" src="https://img.shields.io/github/license/jean-voila/Feurstagram?style=flat-square&color=6b7280"></a>
   <a href="https://discord.gg/Z9QvMw8s76"><img alt="Discord" src="https://img.shields.io/badge/discord-community-5865F2?style=flat-square&logo=discord&logoColor=white"></a>
   <a href="https://www.instagram.com/feurstagram_official/"><img alt="Instagram updates" src="https://img.shields.io/badge/instagram-updates-E4405F?style=flat-square&logo=instagram&logoColor=white"></a>
 </p>
@@ -25,7 +25,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/jean-voila/FeurStagram/releases/latest"><strong>Download APK</strong></a>
+  <a href="https://github.com/jean-voila/Feurstagram/releases/latest"><strong>Download APK</strong></a>
   ·
   <a href="docs/INSTALL.md">Install</a>
   ·
@@ -37,11 +37,11 @@
   ·
   <a href="https://github.com/sponsors/jean-voila">Support</a>
   ·
-  <a href="https://github.com/jean-voila/FeurStagram/issues">Issues</a>
+  <a href="https://github.com/jean-voila/Feurstagram/issues">Issues</a>
 </p>
 
 <p align="center">
-  <img src="docs/preview.png" alt="FeurStagram social preview" width="720">
+  <img src="docs/preview.png" alt="Feurstagram social preview" width="720">
 </p>
 
 ## What it keeps and blocks
@@ -56,26 +56,26 @@
 ## Preview
 
 <p align="center">
-  <img src="docs/screens.png" alt="FeurStagram screenshots" width="680">
+  <img src="docs/screens.png" alt="Feurstagram screenshots" width="680">
 </p>
 
 <p align="center">
-  <img src="docs/tuto.gif" alt="FeurStagram settings tutorial" width="300">
+  <img src="docs/tuto.gif" alt="Feurstagram settings tutorial" width="300">
 </p>
 
 ## Is it safe?
 
-FeurStagram does not collect, proxy, store, or transmit your credentials.
+Feurstagram does not collect, proxy, store, or transmit your credentials.
 
 It patches the official Instagram Android app to remove distracting features. The patches are open source and documented, so you can inspect what is changed.
 
 For maximum trust, you can build the APK yourself instead of downloading a prebuilt release.
 
-That said, FeurStagram is an unofficial project and is not affiliated with Instagram or Meta. It is a modified APK installed outside the Play Store, so Android may show installation warnings. Using a modified client may violate Instagram's terms of service. Use it at your own risk.
+That said, Feurstagram is an unofficial project and is not affiliated with Instagram or Meta. It is a modified APK installed outside the Play Store, so Android may show installation warnings. Using a modified client may violate Instagram's terms of service. Use it at your own risk.
 
-## What FeurStagram does NOT do
+## What Feurstagram does NOT do
 
-FeurStagram does not:
+Feurstagram does not:
 
 - bypass Instagram login;
 - collect your password or session tokens;
@@ -85,15 +85,15 @@ FeurStagram does not:
 - sell or transmit user data;
 - claim affiliation with Instagram or Meta.
 
-## Why FeurStagram?
+## Why Feurstagram?
 
-Unlike WebView-based alternatives, FeurStagram patches the real Android Instagram app.
+Unlike WebView-based alternatives, Feurstagram patches the real Android Instagram app.
 
 Unlike accessibility-service blockers, it does not simply react to the interface after it loads.
 
 Unlike closed-source Instagram mods, every patch is public and auditable.
 
-FeurStagram is built for people who want to keep Instagram's useful social features without the addictive parts.
+Feurstagram is built for people who want to keep Instagram's useful social features without the addictive parts.
 
 I built this project for myself as an alternative to [DFInstagram](https://www.distractionfreeapps.com/) which hasn't been maintained for a long time and was difficult to update. I'm sharing it so others can do the same for themselves.
 
@@ -110,12 +110,12 @@ I built this project for myself as an alternative to [DFInstagram](https://www.d
 
 ## How do I get notified when there is a new update ?
 
-FeurStagram checks GitHub for a newer release on every launch and shows a
+Feurstagram checks GitHub for a newer release on every launch and shows a
 download prompt when your build is out of date. This **automatic update check**
-is on by default and can be turned off in the FeurStagram settings page
+is on by default and can be turned off in the Feurstagram settings page
 (Updates section).
 
-There is also a story on **the official FeurStagram** account every time there
+There is also a story on **the official Feurstagram** account every time there
 is an update:
 
 - https://www.instagram.com/feurstagram_official/
@@ -138,7 +138,7 @@ You have two options:
 ## What Gets Disabled
 
 All content blocks are **individual runtime toggles** — long-press the Home
-tab at the bottom-left of the main tab bar to open the FeurStagram settings
+tab at the bottom-left of the main tab bar to open the Feurstagram settings
 page and check/uncheck what you want blocked. A single APK covers every
 combination.
 
@@ -178,7 +178,7 @@ main tab bar). A full-screen, scrollable settings page opens with:
 - **Landing page** — choose which surface the app jumps to on cold start
   (Home feed, Search, Direct messages, or Profile).
 - **Updates** — *Automatic update check* (on by default): on launch,
-  FeurStagram checks GitHub for a newer release and prompts you to download it
+  Feurstagram checks GitHub for a newer release and prompts you to download it
   if your build is out of date. Turn it off here to stop the check.
 - **Donate** — opens the project's [GitHub Sponsors](https://github.com/sponsors/jean-voila) page.
 - **Permanent lock** and **Done** buttons pinned at the bottom so they stay
@@ -199,7 +199,7 @@ prevents *relaxing* them: you can still make settings **stricter** (turn a
 block on), but you cannot turn a block back off without reinstalling.
 
 The freeze is captured per settings session, not the instant you flip a
-switch. When you open the settings page, FeurStagram snapshots which surfaces
+switch. When you open the settings page, Feurstagram snapshots which surfaces
 are currently blocked; only those stay frozen. A surface you turn on by
 mistake during a session can still be turned back off **until you tap Done** —
 Done clears the cache and restarts, which bakes the new state in as the next
@@ -209,143 +209,83 @@ within the same session instead of forcing a reinstall.
 
 ## Requirements
 
-### Linux
-```bash
-sudo apt install apktool android-sdk-build-tools openjdk-17-jdk python3
-```
+- JDK 21 and the Android SDK (`ANDROID_HOME` set, build-tools installed)
+- A GitHub token with the `read:packages` scope in `~/.gradle/gradle.properties`,
+  used to fetch the patcher dependency:
+  ```properties
+  gpr.user=<your-github-username>
+  gpr.key=<token-with-read:packages>
+  ```
 
-### macOS
-```bash
-brew install apktool android-commandlinetools openjdk python3
- sdkmanager "build-tools;34.0.0"
-```
+## Build from source
 
-## Quick Start
+1. **Download an Instagram APK** from [APKMirror](https://www.apkmirror.com/apk/instagram/instagram-instagram/) (arm64-v8a recommended).
 
-1. **Download an Instagram APK** from [APKMirror](https://www.apkmirror.com/apk/instagram/instagram-instagram/) (arm64-v8a recommended)
-
-2. **Run the patcher:**
+2. **Build and apply:**
    ```bash
-   ./patch.sh instagram.apk
+   ./build.sh instagram.apk
    ```
-
-   Use `--clone` to install FeurStagram **alongside** a stock Instagram
-   (different package ID, separate data, both apps on the same device):
-
+   Add `--clone` to install Feurstagram **alongside** a stock Instagram (separate
+   package and data), and `--install` to push it to a connected device:
    ```bash
-   ./patch.sh --clone instagram.apk
-   # or specify the cloned package ID explicitly:
-   ./patch.sh --clone com.instagram.android.feurstagram instagram.apk
+   ./build.sh instagram.apk --clone --install
    ```
+   The signed result is written to `feurstagram.apk`.
 
-   Without `--clone`, the patched APK keeps Instagram's original package ID
-   and installs as a replacement.
-
-3. **Install the patched APK:**
-   ```bash
-   adb install -r artifacts/feurstagram_patched_<instagram_apk_name>.apk
-   ```
-
-4. **Cleanup build artifacts:**
-   ```bash
-   ./cleanup.sh
-   ```
-
-## File Structure
+## Project structure
 
 ```
 Feurstagram/
-├── patch.sh                       # Main patching script
-├── cleanup.sh                     # Removes build artifacts
-├── apply_network_patch.py         # Network hook patch logic
-├── apply_longpress_patch.py       # Injects the long-press hook on the Home tab
-├── apply_clone_patch.py           # --clone: rewrites the binary AndroidManifest.xml
-│                                  #          and resources.arsc, then propagates
-│                                  #          authority + package renames into smali
-├── artifacts/                     # Patched APK output directory
-└── patches/
-    ├── FeurConfig.smali                  # SharedPreferences-backed toggles + landing page
-    ├── FeurHooks.smali                   # Network blocking hooks
-    ├── FeurSettings.smali                # Full-screen settings page entry point
-    ├── FeurLandingListener.smali         # Persists the landing-page choice
-    ├── FeurLandingWatcher.smali          # Redirects to the chosen surface on launch
-    ├── FeurHomeTabWatcher.smali          # Finds feed_tab in the tab_bar
-    ├── FeurInstantsHider.smali           # Hides the DM "Instants" + button
-    ├── FeurNotesHider.smali              # Hides the DM Notes tray (cf_hub_recycler_view)
-    ├── FeurSettingsLongClick.smali       # View.OnLongClickListener shim
-    ├── FeurUpdateChecker.smali           # On-launch GitHub release check (background thread)
-    ├── FeurUpdatePrompt.smali            # "Update available" dialog (main thread)
-    └── FeurUpdateDownloadListener.smali  # Opens the latest release page in a browser
+├── build.sh                      # Build the bundle and apply it to an APK
+├── patches/                      # Patches (Kotlin): where to inject, by fingerprint
+│   └── src/main/kotlin/com/feurstagram/patches/
+│       ├── network/              # Network content blocking (TigonServiceLayer)
+│       ├── settings/             # Long-press settings entry point (tab bar)
+│       └── clone/                # Side-by-side package/label rename
+└── extensions/                   # Runtime code (Java), compiled and merged in
+    └── .../com/feurstagram/extension/
+        ├── Block.java            # URI blocking rules
+        ├── Config.java           # SharedPreferences toggles + permanent lock
+        ├── Settings.java         # Settings dialog
+        ├── Hiders.java           # Reels tab / Notes / Instants hiders + landing redirect
+        └── UpdateChecker.java    # On-launch GitHub release check
 ```
 
-## Keystore
+## Signing
 
-The patched APK needs to be signed before installation. The patcher uses a keystore file for signing.
-
-### Generating a Keystore
-
-Create a local keystore (do not commit it), then run `patch.sh` with env vars:
-
-```bash
-FEURSTAGRAM_KEYSTORE=./feurstagram.keystore \
-FEURSTAGRAM_KEYSTORE_PASS=your_store_password \
-FEURSTAGRAM_KEY_ALIAS=feurstagram \
-./patch.sh instagram.apk
-```
-
-If `feurstagram.keystore` doesn't exist yet, create one:
-
-```bash
-keytool -genkey -v -keystore feurstagram.keystore -alias feurstagram \
-  -keyalg RSA -keysize 2048 -validity 10000 \
-  -storepass android -keypass android \
-  -dname "CN=Feurstagram, OU=Feurstagram, O=Feurstagram, L=Unknown, ST=Unknown, C=XX"
-```
-
-### Keystore Details
-
-| Property | Value |
-|----------|-------|
-| Filename | `feurstagram.keystore` |
-| Alias | `feurstagram` |
-| Algorithm | RSA 2048-bit |
-| Validity | 10,000 days |
-
-> **Note:** If you reinstall the app, you must use the same keystore to preserve your data. Signing with a different keystore requires uninstalling the previous version first.
+The bundle is signed during `build.sh`. Set `FEURSTAGRAM_KEYSTORE_PASS` (and
+optionally `FEURSTAGRAM_KEY_PASS`) to sign with `feurstagram.keystore`;
+otherwise a throwaway keystore is generated. Reuse the same keystore across
+builds to install updates without uninstalling first.
 
 ## Debugging
 
-View logs to see what's being blocked:
+Blocked requests surface as `java.io.IOException: Blocked by Feurstagram` in
+logcat:
 ```bash
-adb logcat -s "Feurstagram:D"
+adb logcat | grep "Blocked by Feurstagram"
 ```
 
 ## How It Works
 
-Everything is network-based — there is no UI-level tab redirection. Reels,
-Explore, Feed, Stories and suggested accounts are all blocked the same way (by
-refusing their backend fetches), and each one is individually toggleable at
-runtime through the settings page.
+Patches locate their injection points by **fingerprint** (matching code by
+stable traits like class names, strings and method shapes) rather than by
+obfuscated names, so they keep applying across Instagram updates. The runtime
+logic lives in compiled extension classes that are merged into the app.
 
 ### Settings Hook
-The patcher injects a watcher on the main tab bar binder (`LX/4jG`, the class
-that stores the `tab_bar` ViewGroup in field `A0F`). The watcher resolves the
-`feed_tab` resource id dynamically via `Resources.getIdentifier(...)`, grabs
-the Home tab FrameLayout once it's laid out, and installs a long-press
-listener on it. Long-pressing it opens a custom Material 3-styled dark
-full-screen page: a scrollable list of `SwitchCompat` content toggles plus a
-landing-page `RadioGroup`, all backed by `SharedPreferences`
-(`feurstagram_prefs`), with the action buttons pinned at the bottom.
-
-The same tab-bar hook also installs a landing-page watcher: on cold start it
-resolves the chosen surface's tab id (`search_tab`, `direct_tab`,
-`profile_tab`) and performs a click once it is laid out, so the app opens
-directly on that surface instead of the Home feed.
+A fingerprint matches the main tab-bar binder and injects a watcher on it. The
+watcher resolves the `feed_tab` id via `Resources.getIdentifier(...)`, grabs
+the Home tab once laid out, and installs a long-press listener. Long-pressing
+opens a full-screen Material dark page: content toggles plus a landing-page
+selector, all backed by `SharedPreferences` (`feurstagram_prefs`). The same
+hook installs the Reels/Notes/Instants hiders and the cold-start landing-page
+redirect.
 
 ### Network Blocking
-Hooks into `TigonServiceLayer` (a named, non-obfuscated class). Before each
-request, `FeurHooks.throwIfBlocked()` runs on the request URI; blocked calls
-fail with an `IOException` so the stack unwinds cleanly.
+A fingerprint matches `TigonServiceLayer.startRequest` (a named class) and
+injects a call on the request URI. Blocked calls throw an `IOException`, so the
+surface fails to load and stays empty.
 
 #### Blocked network paths
 
@@ -367,15 +307,13 @@ fail with an `IOException` so the stack unwinds cleanly.
 
 Note: despite the name, `/feed/reels_tray` is the stories tray endpoint in Instagram internals.
 
-Matching uses `String.contains()` on the URI path. Instagram changes URL shapes over time; adjust `patches/FeurHooks.smali` if a block stops matching.
+Matching uses `String.contains()` on the URI path. Instagram changes URL shapes over time; adjust the rules in `extensions/.../Block.java` if a block stops matching.
 
 ## Updating for New Instagram Versions
 
-I'll update this project to support new Instagram versions as they are released. When a new version comes out, I'll apply the necessary patches and release an updated APK.
-
-1. TigonServiceLayer is a named class (doesn't change).
-
-2. Apply the same patches.
+Because patches are fingerprint-based, a new Instagram version usually just
+needs a rebuild (`./build.sh <new-instagram.apk>`). If Instagram restructures a
+targeted area, only the affected fingerprint needs adjusting.
 
 
 ## Contributing
@@ -390,3 +328,8 @@ This is a personal project I'm sharing with the community. Contributions are wel
 ## License
 
 This project is released under the GNU General Public License v3.0. See [LICENSE](LICENSE) for details.
+
+Built with the [Morphe](https://morphe.software) patcher and adapts Instagram
+patch ideas from [Piko](https://github.com/crimera/piko), both GPLv3. See
+[NOTICE](NOTICE) for attribution. Feurstagram is an independent project, not
+affiliated with or endorsed by Morphe or Piko.

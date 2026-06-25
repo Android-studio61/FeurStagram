@@ -6,11 +6,11 @@ Go to the latest GitHub Release and download one of the APK files.
 
 ### Classic APK
 
-Use this if you want FeurStagram to replace your current Instagram app.
+Use this if you want Feurstagram to replace your current Instagram app.
 
 ### Clone APK
 
-Use this if you want FeurStagram to be installed alongside the official Instagram app.
+Use this if you want Feurstagram to be installed alongside the official Instagram app.
 
 ## Option 2: Build it yourself
 
@@ -23,7 +23,7 @@ If you prefer not to trust a prebuilt APK, follow the [build-from-source guide](
 3. Check the release notes for the supported Instagram version.
 4. Install the APK on your Android device.
 5. Log in through Instagram as usual.
-6. Long-press the Home tab to open FeurStagram settings.
+6. Long-press the Home tab to open Feurstagram settings.
 7. Report issues on GitHub if something does not work.
 
 ## Troubleshooting

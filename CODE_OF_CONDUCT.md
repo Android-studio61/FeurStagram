@@ -1,6 +1,6 @@
 # Code of Conduct
 
-FeurStagram is a small open-source project. The goal is to keep discussion useful, respectful, and focused on making the project safer and easier to use.
+Feurstagram is a small open-source project. The goal is to keep discussion useful, respectful, and focused on making the project safer and easier to use.
 
 ## Expected behavior
 

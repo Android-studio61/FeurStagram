@@ -1,27 +1,26 @@
 # Build outputs
 *.apk
 *.idsig
-artifacts/
+*.mpe
+*.mpp
 
-# Decompiled source (generated during patching)
-instagram_source/
+# Local tooling (Morphe CLI is downloaded locally)
+tools/
 
 # Local signing material
 *.keystore
 *.jks
 
+# Gradle / build
+.gradle/
+build/
+**/build/
+.kotlin/
+local.properties
+
 # IDE
 *.iml
-.gradle
 /.idea
+
+# OS
 .DS_Store
-
-# Android
-/local.properties
-/captures
-.externalNativeBuild
-.cxx
-
-# Python
-__pycache__/
-*.pyc

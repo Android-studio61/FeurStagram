@@ -1,109 +1,52 @@
 # Build from source
 
-This guide explains how to build FeurStagram yourself.
-
-Building from source is the recommended option if you want to inspect the patches and avoid trusting a prebuilt APK.
+This guide explains how to build Feurstagram yourself. Building from source lets
+you inspect the patches and avoid trusting a prebuilt APK.
 
 ## Requirements
 
-- Linux, macOS, or WSL;
-- `apktool`;
-- Java / JDK;
-- Python 3;
-- Android SDK build-tools with `zipalign` and `apksigner`;
-- a local Android signing keystore;
-- the official Instagram APK version supported by the current release.
-
-## Install dependencies
-
-### Linux
-
-```sh
-sudo apt install apktool android-sdk-build-tools openjdk-17-jdk python3
-```
-
-### macOS
-
-```sh
-brew install apktool android-commandlinetools openjdk python3
-sdkmanager "build-tools;34.0.0"
-```
+- JDK 21 and the Android SDK (`ANDROID_HOME` set, build-tools installed)
+- A GitHub token with the `read:packages` scope in `~/.gradle/gradle.properties`
+  (used to fetch the patcher dependency):
+  ```properties
+  gpr.user=<your-github-username>
+  gpr.key=<token-with-read:packages>
+  ```
+- A supported Instagram APK (arm64-v8a from a trusted source such as APKMirror)
 
 ## Steps
 
 1. Clone the repository.
+   ```sh
+   git clone https://github.com/jean-voila/Feurstagram.git
+   cd Feurstagram
+   ```
 
-```sh
-git clone https://github.com/jean-voila/FeurStagram.git
-cd FeurStagram
-```
+2. Build and apply the patches to your Instagram APK.
+   ```sh
+   ./build.sh instagram.apk
+   ```
+   Add `--clone` to install alongside a stock Instagram, and `--install` to push
+   to a connected device:
+   ```sh
+   ./build.sh instagram.apk --clone --install
+   ```
 
-2. Download a supported Instagram APK.
+3. Install the signed result (if you did not pass `--install`).
+   ```sh
+   adb install -r feurstagram.apk
+   ```
 
-Use a trusted APK source and check the release notes for the Instagram version currently supported by FeurStagram. The existing quick start recommends the arm64-v8a APK from APKMirror.
+## Signing
 
-3. Create a local signing keystore if you do not already have one.
-
-```sh
-keytool -genkey -v -keystore feurstagram.keystore -alias feurstagram \
-  -keyalg RSA -keysize 2048 -validity 10000 \
-  -storepass android -keypass android \
-  -dname "CN=Feurstagram, OU=Feurstagram, O=Feurstagram, L=Unknown, ST=Unknown, C=XX"
-```
-
-Do not commit your keystore.
-
-4. Run the patch script.
-
-```sh
-FEURSTAGRAM_KEYSTORE=./feurstagram.keystore \
-FEURSTAGRAM_KEYSTORE_PASS=android \
-FEURSTAGRAM_KEY_ALIAS=feurstagram \
-FEURSTAGRAM_KEY_PASS=android \
-./patch.sh instagram.apk
-```
-
-To build a clone APK that installs alongside the official Instagram app:
-
-```sh
-FEURSTAGRAM_KEYSTORE=./feurstagram.keystore \
-FEURSTAGRAM_KEYSTORE_PASS=android \
-FEURSTAGRAM_KEY_ALIAS=feurstagram \
-FEURSTAGRAM_KEY_PASS=android \
-./patch.sh --clone instagram.apk
-```
-
-You can also specify a clone package ID:
-
-```sh
-FEURSTAGRAM_KEYSTORE=./feurstagram.keystore \
-FEURSTAGRAM_KEYSTORE_PASS=android \
-FEURSTAGRAM_KEY_ALIAS=feurstagram \
-FEURSTAGRAM_KEY_PASS=android \
-./patch.sh --clone com.instagram.android.feurstagram instagram.apk
-```
-
-5. Install the patched APK.
-
-```sh
-adb install -r artifacts/feurstagram_patched_<instagram_apk_name>.apk
-```
-
-For clone builds, install the clone artifact:
-
-```sh
-adb install -r artifacts/feurstagram_clone_patched_<instagram_apk_name>.apk
-```
-
-6. Clean generated build artifacts when you are done.
-
-```sh
-./cleanup.sh
-```
+The bundle is signed during the build. Set `FEURSTAGRAM_KEYSTORE_PASS` (and
+optionally `FEURSTAGRAM_KEY_PASS`) to sign with `feurstagram.keystore`;
+otherwise a throwaway keystore is generated. Do not commit your keystore, and
+keep the same one to reinstall without losing app data.
 
 ## Notes
 
 - Only use APKs from trusted sources.
-- Make sure the Instagram APK version matches the supported version.
-- Keep the same keystore if you want to reinstall without losing app data.
+- Patches are fingerprint-based, so a new Instagram version usually only needs a
+  rebuild.
 - If the build fails, check open issues or create a bug report.

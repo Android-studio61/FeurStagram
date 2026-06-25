@@ -1,4 +1,4 @@
-# FeurStagram <version>
+# Feurstagram <version>
 
 ## Download
 
@@ -31,4 +31,4 @@ The classic APK replaces Instagram.
 
 The clone APK can be installed alongside the official Instagram app.
 
-If you do not want to trust a prebuilt APK, build FeurStagram yourself from source.
+If you do not want to trust a prebuilt APK, build Feurstagram yourself from source.

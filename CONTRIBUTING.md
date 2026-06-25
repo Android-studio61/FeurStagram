@@ -1,15 +1,15 @@
-# Contributing to FeurStagram
+# Contributing to Feurstagram
 
-Thanks for considering contributing to FeurStagram.
+Thanks for considering contributing to Feurstagram.
 
-FeurStagram aims to make Instagram less addictive while keeping the useful parts of the app.
+Feurstagram aims to make Instagram less addictive while keeping the useful parts of the app.
 
 ## Ways to contribute
 
 You can help by:
 
 - reporting bugs with clear reproduction steps;
-- testing FeurStagram on different Android versions and devices;
+- testing Feurstagram on different Android versions and devices;
 - improving documentation;
 - improving installation instructions;
 - updating patches for newer Instagram versions;
@@ -22,7 +22,7 @@ Please include:
 
 - your Android version;
 - your device model;
-- the FeurStagram version;
+- the Feurstagram version;
 - the Instagram version used for patching, if relevant;
 - whether you installed the classic APK or clone APK;
 - steps to reproduce the issue;

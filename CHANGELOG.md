@@ -1,12 +1,12 @@
 # Changelog
 
-All notable changes to FeurStagram should be documented in this file.
+All notable changes to Feurstagram should be documented in this file.
 
 ## Unreleased
 
 ### Added
 
-- Added an **automatic update check**: on each launch FeurStagram asks GitHub
+- Added an **automatic update check**: on each launch Feurstagram asks GitHub
   for the latest release and, if the installed build is out of date, shows a
   dialog inviting the user to download the update. Enabled by default;
   toggleable from the new **Updates** section of the settings page. The toggle
