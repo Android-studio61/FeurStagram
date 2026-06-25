@@ -10,8 +10,12 @@
 #   --install   install the result on the connected ADB device
 #
 # Signing: set FEURSTAGRAM_KEYSTORE_PASS (and optionally FEURSTAGRAM_KEY_PASS)
-# to sign with feurstagram.keystore. Otherwise the CLI generates a throwaway
-# keystore (fine for testing, not for release).
+# to sign with feurstagram.keystore. That keystore is PKCS12, which the Morphe
+# CLI cannot read (it expects BKS), so the APK is built unsigned and signed with
+# the Android SDK's apksigner — this reproduces the existing release signature,
+# so users update in place without uninstalling. Override the keystore/alias
+# with FEURSTAGRAM_KEYSTORE / FEURSTAGRAM_KEY_ALIAS. Without a keystore password
+# the CLI signs with a throwaway key (fine for testing, not for release).
 set -euo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -40,6 +44,14 @@ if [ -z "${ANDROID_HOME:-}" ]; then
             break
         fi
     done
+fi
+
+# Signing material. apksigner ships with the Android SDK build-tools.
+KEYSTORE="${FEURSTAGRAM_KEYSTORE:-$DIR/feurstagram.keystore}"
+KEY_ALIAS="${FEURSTAGRAM_KEY_ALIAS:-feurstagram}"
+APKSIGNER=""
+if [ -n "${ANDROID_HOME:-}" ]; then
+    APKSIGNER="$(ls -t "$ANDROID_HOME"/build-tools/*/apksigner 2>/dev/null | head -1)"
 fi
 
 APK=""
@@ -74,14 +86,47 @@ echo "    bundle: $MPP"
 echo "==> [2/3] Applying to $(basename "$APK")"
 ARGS=(-jar "$CLI" patch -p "$MPP" -f --purge -o "$OUT")
 [ "$CLONE" -eq 1 ] && ARGS+=(-e "Clone")
+
+# With a keystore password, defer signing to apksigner (the CLI can't read the
+# PKCS12 keystore); otherwise let the CLI sign with a throwaway key for testing.
+SIGN_WITH_APKSIGNER=0
 if [ -n "${FEURSTAGRAM_KEYSTORE_PASS:-}" ]; then
-    ARGS+=(--keystore "$DIR/feurstagram.keystore"
-           --keystore-entry-alias "feurstagram"
-           --keystore-password "$FEURSTAGRAM_KEYSTORE_PASS"
-           --keystore-entry-password "${FEURSTAGRAM_KEY_PASS:-$FEURSTAGRAM_KEYSTORE_PASS}")
+    if [ ! -f "$KEYSTORE" ]; then
+        echo "Error: keystore not found: $KEYSTORE" >&2
+        exit 1
+    fi
+    if [ -z "$APKSIGNER" ]; then
+        echo "Error: apksigner not found under \$ANDROID_HOME/build-tools." >&2
+        echo "       Install the Android SDK build-tools, or unset FEURSTAGRAM_KEYSTORE_PASS" >&2
+        echo "       to sign with a throwaway key (testing only)." >&2
+        exit 1
+    fi
+    SIGN_WITH_APKSIGNER=1
+    ARGS+=(--unsigned)
 fi
 ARGS+=("$APK")
 java "${ARGS[@]}"
+
+if [ "$SIGN_WITH_APKSIGNER" -eq 1 ]; then
+    echo "    signing with apksigner ($(basename "$KEYSTORE"), alias $KEY_ALIAS)"
+    # Force v1+v2+v3 so the signature is accepted across the whole user base's
+    # devices and matches the schemes prior releases shipped; v4 (the .idsig
+    # sidecar) is only useful for adb incremental install, so leave it off.
+    "$APKSIGNER" sign \
+        --ks "$KEYSTORE" \
+        --ks-key-alias "$KEY_ALIAS" \
+        --ks-pass "pass:$FEURSTAGRAM_KEYSTORE_PASS" \
+        --key-pass "pass:${FEURSTAGRAM_KEY_PASS:-$FEURSTAGRAM_KEYSTORE_PASS}" \
+        --v1-signing-enabled true \
+        --v2-signing-enabled true \
+        --v3-signing-enabled true \
+        --v4-signing-enabled false \
+        "$OUT"
+    # apksigner only writes a v4 .idsig when v4 is enabled; clean up just in case.
+    rm -f "$OUT.idsig"
+    "$APKSIGNER" verify --print-certs "$OUT" 2>/dev/null \
+        | grep -i "SHA-256" | head -1 | sed 's/^/    cert /' || true
+fi
 
 echo "==> [3/3] Output: $OUT"
 if [ "$INSTALL" -eq 1 ]; then

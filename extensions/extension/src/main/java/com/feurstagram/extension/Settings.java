@@ -51,24 +51,17 @@ public final class Settings {
 
     private Settings() {}
 
-    /** Attach the long-press settings entry-point and UI hiders to the tab bar. */
+    /**
+     * Install the Feurstagram entry points off the bottom tab bar: the settings
+     * button in the feed's top action bar, the UI hiders, and the launch update
+     * check. The tab bar is just a stable handle into the window's view tree.
+     */
     public static void installHomeTabWatcher(ViewGroup tabBar) {
         if (tabBar == null) return;
-        tabBar.getViewTreeObserver().addOnGlobalLayoutListener(new HomeTabWatcher(tabBar));
+        tabBar.getRootView().getViewTreeObserver()
+                .addOnGlobalLayoutListener(new ActionBarWatcher(tabBar.getRootView()));
         Hiders.installAll(tabBar);
         UpdateChecker.check(getActivityContext(tabBar));
-    }
-
-    /** Make a view open the settings dialog on long-press. */
-    public static void attachLongPress(View view) {
-        if (view == null) return;
-        view.setOnLongClickListener(v -> {
-            Context context = getActivityContext(v);
-            if (context == null) return false;
-            show(context);
-            return true;
-        });
-        view.setLongClickable(true);
     }
 
     /** Unwrap a view's context down to the hosting Activity when possible. */
@@ -164,6 +157,13 @@ public final class Settings {
         LinearLayout updates = makeSectionCard(context);
         column.addView(updates);
         addRow(context, updates, "Automatic update check", "auto_update", Config.isAutoUpdateEnabled());
+
+        Button checkUpdate = makeButton(context, "Check for updates", SURFACE_CONTAINER, ON_SURFACE, true);
+        checkUpdate.setOnClickListener(v -> UpdateChecker.checkNow(context));
+        LinearLayout.LayoutParams checkLp =
+                new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        checkLp.setMargins(0, dp(context, 12), 0, 0);
+        column.addView(checkUpdate, checkLp);
 
         Button donate = makeButton(context, "Donate", Color.parseColor("#EA4AAA"), Color.WHITE, true);
         donate.setOnClickListener(v -> openUrl(context, "https://github.com/sponsors/jean-voila"));
