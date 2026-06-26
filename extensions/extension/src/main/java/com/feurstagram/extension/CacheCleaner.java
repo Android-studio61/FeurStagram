@@ -48,6 +48,11 @@ public final class CacheCleaner implements Runnable {
             // subdirectories whose name looks like a media/prefetch cache.
             wipeMediaCaches(context.getFilesDir());
 
+            // Prefetched reels/stories survive in Room databases under databases/.
+            // Without this they re-appear after restart even though the network
+            // request that would refill them is blocked.
+            wipeReelsDatabases(context);
+
             wipeKnownVideoCaches(context);
             wipeKnownReelsArtifacts(context);
         } catch (Throwable ignored) {
@@ -99,6 +104,42 @@ public final class CacheCleaner implements Runnable {
         wipeUnder(context.getFilesDir(), REELS_ARTIFACT_PATHS);
         File parent = context.getFilesDir() == null ? null : context.getFilesDir().getParentFile();
         wipeUnder(parent, REELS_ARTIFACT_PATHS);
+    }
+
+    /**
+     * Room databases (in the app's databases/ dir, a sibling of files/ and cache/)
+     * persist prefetched reel and story media across restarts. Instagram serves
+     * those surfaces from these DBs without a network call, so the network block
+     * never fires and already-prefetched content keeps showing. Wipe them — along
+     * with their -wal/-shm/-journal companions, matched by name substring.
+     */
+    private static final String[] REELS_DB_MARKERS = {
+            "delivery_media_room_db",        // delivery + reels_tray_delivery prefetch
+            "user_reel_medias_room_db",      // reels media blobs
+            "flash_media_",
+            "clips_",
+    };
+
+    private static void wipeReelsDatabases(Context context) {
+        if (context == null) return;
+        try {
+            File probe = context.getDatabasePath("delivery_media_room_db");
+            File databasesDir = probe == null ? null : probe.getParentFile();
+            if (databasesDir == null) return;
+            File[] children = databasesDir.listFiles();
+            if (children == null) return;
+            for (File child : children) {
+                if (child == null) continue;
+                String name = child.getName().toLowerCase(Locale.ROOT);
+                for (String marker : REELS_DB_MARKERS) {
+                    if (name.contains(marker)) {
+                        deleteRecursive(child);
+                        break;
+                    }
+                }
+            }
+        } catch (Throwable ignored) {
+        }
     }
 
     private static void wipeUnder(File root, String[] relativePaths) {
