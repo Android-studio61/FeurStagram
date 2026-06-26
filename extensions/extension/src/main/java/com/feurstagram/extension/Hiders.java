@@ -27,6 +27,8 @@ public final class Hiders {
                 "creation_entrypoint", "direct_quick_snap_consumption_preview"));
         // Cold-start landing-page redirect.
         observer.addOnGlobalLayoutListener(new LandingWatcher(root));
+        // Skip the blocked Reels page when swiping between Home and Messages.
+        ReelsSwipeSkipper.install(root);
     }
 
     static int resolveId(Context context, String name) {
