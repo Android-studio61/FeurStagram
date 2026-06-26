@@ -58,8 +58,10 @@ public final class Settings {
      */
     public static void installHomeTabWatcher(ViewGroup tabBar) {
         if (tabBar == null) return;
-        tabBar.getRootView().getViewTreeObserver()
-                .addOnGlobalLayoutListener(new ActionBarWatcher(tabBar.getRootView()));
+        // Settings open on a long-press of the Home tab. (An injected action-bar
+        // button was tried but failed to appear on many devices, so it was
+        // dropped in favour of this tab-bar-only entry point.)
+        tabBar.getViewTreeObserver().addOnGlobalLayoutListener(new HomeTabWatcher(tabBar));
         Hiders.installAll(tabBar);
         UpdateChecker.check(getActivityContext(tabBar));
     }

@@ -44,8 +44,8 @@ internal object TabBarBinderFingerprint : Fingerprint(
 @Suppress("unused")
 val settingsEntryPointPatch = bytecodePatch(
     name = "Settings entry point",
-    description = "Adds the Feurstagram settings button to the feed action bar " +
-        "(left of the notifications icon) and installs the surface hiders and update check.",
+    description = "Opens the Feurstagram settings on a long-press of the Home tab, " +
+        "and installs the surface hiders and update check.",
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_INSTAGRAM)
@@ -55,8 +55,8 @@ val settingsEntryPointPatch = bytecodePatch(
     execute {
         TabBarBinderFingerprint.method.apply {
             // The value stored into the ViewGroup field is the tab_bar root; it's
-            // a stable handle into the window, from which the watcher reaches the
-            // top action bar to insert the settings button.
+            // a stable handle into the window, from which the watcher attaches the
+            // long-press settings listener to the Home tab and installs the hiders.
             val tabBarStore = instructions.first {
                 it.opcode == Opcode.IPUT_OBJECT && fieldType(it) == "Landroid/view/ViewGroup;"
             }

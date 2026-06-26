@@ -58,11 +58,17 @@ public final class Hiders {
         public void onGlobalLayout() {
             Context context = root.getContext();
             if (context == null) return;
+            // Search the whole window, not just the tab bar: some targets (the
+            // Instants "+" overlay and the Notes tray) live in the DM-inbox
+            // subtree, which is a sibling of the tab bar, not a descendant. The
+            // tab bar's ViewTreeObserver still fires for those layout passes.
+            View searchRoot = root.getRootView();
+            if (searchRoot == null) searchRoot = root;
             int visibility = Config.getBlocked(key, true) ? View.GONE : View.VISIBLE;
             for (String name : names) {
                 int id = resolveId(context, name);
                 if (id == 0) continue;
-                View view = root.findViewById(id);
+                View view = searchRoot.findViewById(id);
                 if (view != null) view.setVisibility(visibility);
             }
         }
